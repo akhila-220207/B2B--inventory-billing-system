@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import FeaturesPage from "./FeaturesPage";
 import { FaLinkedin, FaTwitter, FaFacebook } from "react-icons/fa";
+import bg from "../backgroundimage.jpg";
 
 export default function LandingPage() {
   return (
