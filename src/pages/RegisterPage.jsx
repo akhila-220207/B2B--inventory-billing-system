@@ -46,7 +46,6 @@ export default function RegisterPage() {
     if (!validate()) return;
 
     setLoading(true);
-<<<<<<< HEAD
 
     setTimeout(() => {
       setLoading(false);
@@ -59,27 +58,6 @@ export default function RegisterPage() {
           ? "/supplier-dashboard"
           : "/buyer-dashboard";
     }, 1000);
-=======
-    try {
-      const response = await fetch("http://localhost:5001/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setErrors({ form: data.message || "Registration failed. Please try again." });
-        setLoading(false);
-        return;
-      }
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
-      window.location.href = data.role === "supplier" ? "/supplier-dashboard" : "/buyer-dashboard";
-    } catch (err) {
-      setErrors({ form: "Unable to connect to server. Make sure the backend is running." });
-      setLoading(false);
-    }
->>>>>>> 0f303cb6f215c5b276caef3e28be5816f4debae5
   };
 
   const handleChange = (e) =>
@@ -177,7 +155,6 @@ export default function RegisterPage() {
                 Supplier
               </button>
             </div>
-<<<<<<< HEAD
 
             {errors.role && (
               <p className="text-red-500 text-sm">{errors.role}</p>
@@ -201,24 +178,6 @@ export default function RegisterPage() {
           </p>
 
         </div>
-=======
-            {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
-          </div>
-          {errors.form && (
-            <p className="text-red-500 text-sm mb-3 text-center">{errors.form}</p>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? "Creating Account..." : "Create Account"}
-          </button>
-        </form>
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Already have an account? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
-        </p>
->>>>>>> 0f303cb6f215c5b276caef3e28be5816f4debae5
       </div>
 
       {/* Dark Outline Animation */}
