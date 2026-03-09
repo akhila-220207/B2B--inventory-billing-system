@@ -20,7 +20,7 @@ export default function BuyerDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
 
-  const cartItems = 3; // example
+  const cartItems = 3; 
   const notificationCount = 2; 
 
   const isActive = (path) =>
