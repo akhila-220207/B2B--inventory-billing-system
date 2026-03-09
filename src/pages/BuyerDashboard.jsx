@@ -21,7 +21,7 @@ export default function BuyerDashboard() {
   const location = useLocation();
 
   const cartItems = 3; // example
-  const notificationCount = 2; // example
+  const notificationCount = 2; 
 
   const isActive = (path) =>
     location.pathname === path ? "bg-blue-600 text-white" : "hover:text-blue-200";
