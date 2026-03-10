@@ -17,6 +17,13 @@ import SupplierProfilePage from "./pages/SupplierProfilePage";
 import ProductDetailsPage from "./pages/ProductDetailsPage";
 import SupplierDashboard from "./pages/supplier/SupplierDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import SupplierHomePage from "./pages/supplier/SupplierHomePage";
+import ProductsPage from "./pages/supplier/ProductsPage";
+import InventoryPage from "./pages/supplier/InventoryPage";
+import SupplierOrdersPage from "./pages/supplier/OrdersPage";
+import BillingPage from "./pages/supplier/BillingPage";
+import SupplierReportsPage from "./pages/supplier/ReportsPage";
+import SupplierSettingsPage from "./pages/supplier/SettingsPage";
 
 
 export default function App() {
@@ -27,11 +34,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        <Route path="/buyer-dashboard" element={
-          <ProtectedRoute allowedRoles={["buyer"]}>
-            <BuyerDashboard />
-          </ProtectedRoute>
-        }>
+        <Route path="/buyer-dashboard" element={<BuyerDashboard />}>
           <Route index element={<BuyerOverview />} />
           <Route path="marketplace" element={<MarketplacePage />} />
           <Route path="cart" element={<CartPage />} />
@@ -42,11 +45,15 @@ export default function App() {
           <Route path="reports" element={<ReportsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
-        <Route path="/supplier-dashboard/*" element={
-          <ProtectedRoute allowedRoles={["supplier"]}>
-            <SupplierDashboard />
-          </ProtectedRoute>
-        } />
+        <Route path="/supplier-dashboard" element={<SupplierDashboard />}>
+          <Route index element={<SupplierHomePage />} />
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="inventory" element={<InventoryPage />} />
+          <Route path="orders" element={<SupplierOrdersPage />} />
+          <Route path="billing" element={<BillingPage />} />
+          <Route path="reports" element={<SupplierReportsPage />} />
+          <Route path="settings" element={<SupplierSettingsPage />} />
+        </Route>
         <Route path="/order-tracking/:orderId" element={<OrderTrackingPage />} />
         <Route path="/supplier-profile/:supplierId" element={<SupplierProfilePage />} />
         <Route path="/product/:productId" element={<ProductDetailsPage />} />

@@ -40,20 +40,20 @@ export default function InventoryPage() {
   ];
 
   return (
-    <div className="min-h-screen p-8 bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100">
+    <div className="min-h-screen p-8 bg-[#f8fafc]">
 
       {/* Title */}
-      <h2 className="text-4xl font-bold text-center mb-10 text-purple-700">
+      <h2 className="text-4xl font-bold text-center mb-10 text-gray-800">
         📦 Inventory Dashboard
       </h2>
 
       {/* Table Container */}
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
+      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
 
         <table className="w-full">
 
           {/* Table Header */}
-          <thead className="bg-gradient-to-r from-purple-500 to-blue-500 text-white">
+          <thead className="bg-blue-600 text-white">
             <tr>
               <th className="p-4 text-left">Product</th>
               <th className="p-4 text-left">Available Stock</th>

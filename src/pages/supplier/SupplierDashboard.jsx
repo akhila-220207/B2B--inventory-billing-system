@@ -1,215 +1,237 @@
-import { Link, Routes, Route } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   FaBell,
   FaUserCircle,
   FaSearch,
-  FaBoxOpen,
+  FaBox,
   FaClipboardList,
   FaFileInvoice,
   FaChartBar,
   FaCog,
   FaHome,
   FaWarehouse,
+  FaChevronLeft,
+  FaChevronRight,
+  FaThumbtack
 } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Notifications from "../../components/Notifications";
-
-import ProductsPage from "./ProductsPage";
-import InventoryPage from "./InventoryPage";
-import OrdersPage from "./OrdersPage";
-import BillingPage from "./BillingPage";
-import ReportsPage from "./ReportsPage";
-import SettingsPage from "./SettingsPage";
 
 export default function SupplierDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isPinned, setIsPinned] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const hideTimeoutRef = useRef(null);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: "New order received", time: "2 hours ago", status: "success" },
+    { id: 2, message: "Low stock alert for 'Rice Bags'", time: "5 hours ago", status: "warning" },
+  ]);
+
+  const notificationCount = notifications.length;
+
+  const isSidebarOpen = isPinned || isHovered;
+
+  const handleMouseEnter = () => {
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (!isPinned) {
+      hideTimeoutRef.current = setTimeout(() => {
+        setIsHovered(false);
+      }, 800); // Auto-hide after 800ms
+    } else {
+      setIsHovered(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      navigate(`/supplier-dashboard/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const isActive = (path) =>
+    location.pathname === path
+      ? "bg-blue-600/10 text-blue-100 border-r-4 border-blue-400 font-bold"
+      : "text-blue-200/60 hover:text-white hover:bg-white/5";
+
+  const navItems = [
+    { to: "/supplier-dashboard", icon: FaHome, label: "Home" },
+    { to: "/supplier-dashboard/products", icon: FaBox, label: "Products" },
+    { to: "/supplier-dashboard/inventory", icon: FaWarehouse, label: "Inventory" },
+    { to: "/supplier-dashboard/orders", icon: FaClipboardList, label: "Orders" },
+    { to: "/supplier-dashboard/billing", icon: FaFileInvoice, label: "Billing" },
+    { to: "/supplier-dashboard/reports", icon: FaChartBar, label: "Reports" },
+    { to: "/supplier-dashboard/settings", icon: FaCog, label: "Settings" },
+  ];
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-[#f8fafc] overflow-hidden">
 
-      {/* Sidebar */}
-      <aside className="w-64 bg-blue-100 text-gray-800 flex flex-col shadow-md border-r border-gray-200">
+      {/* Smart Trigger Zone (Invisible) */}
+      {!isSidebarOpen && (
+        <div
+          onMouseEnter={() => setIsHovered(true)}
+          className="fixed left-0 top-0 w-4 h-full z-[100] cursor-e-resize"
+        />
+      )}
 
-        {/* Animated Supplier Panel */}
-        <div className="p-6 text-2xl font-bold border-b border-blue-200 flex items-center gap-2
-                        transition-all duration-500 hover:scale-110 hover:text-blue-600 animate-pulse">
-          <span className="animate-bounce">🚚</span>
-          <span className="tracking-wide">Supplier Panel</span>
+      {/* Sidebar Component */}
+      <aside
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`fixed top-0 left-0 h-full bg-[#0f172a] shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] z-[110] flex flex-col group
+          ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-20 -translate-x-full md:translate-x-0 md:w-20'}
+        `}
+      >
+        {/* Sidebar Header */}
+        <div className="h-20 flex items-center px-6 border-b border-white/5 relative">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20">
+              S
+            </div>
+            {isSidebarOpen && (
+              <span className="text-xl font-black tracking-tighter text-white animate-in fade-in slide-in-from-left-4 duration-500">
+                Supplier<span className="text-blue-500">Panel</span>
+              </span>
+            )}
+          </div>
+
+          {/* Pin Toggle */}
+          <button
+            onClick={() => setIsPinned(!isPinned)}
+            className={`absolute -right-3 top-7 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-90 z-20
+              ${!isSidebarOpen && 'hidden'}
+            `}
+          >
+            <FaThumbtack size={10} className={isPinned ? 'rotate-45' : 'rotate-0'} />
+          </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-3">
-
-          {[
-            { path: "", icon: <FaHome />, label: "Dashboard" },
-            { path: "products", icon: <FaBoxOpen />, label: "Products" },
-            { path: "inventory", icon: <FaWarehouse />, label: "Inventory" },
-            { path: "orders", icon: <FaClipboardList />, label: "Orders" },
-            { path: "billing", icon: <FaFileInvoice />, label: "Billing" },
-            { path: "reports", icon: <FaChartBar />, label: "Reports" },
-            { path: "settings", icon: <FaCog />, label: "Settings" },
-          ].map((link) => (
+        {/* Navigation */}
+        <nav className="flex-1 py-10 px-4 space-y-2 overflow-y-auto no-scrollbar">
+          {navItems.map((item) => (
             <Link
-              key={link.label}
-              to={`/supplier-dashboard/${link.path}`}
-              className="flex items-center space-x-2 p-2 rounded-md border border-transparent
-                         hover:border-blue-300 hover:bg-blue-200 hover:scale-105
-                         transition duration-300"
+              key={item.to}
+              to={item.to}
+              className={`flex items-center gap-4 p-3.5 rounded-2xl transition-all duration-300 relative group/item
+                ${isActive(item.to)}
+              `}
             >
-              {link.icon}
-              <span>{link.label}</span>
+              <item.icon className={`text-xl shrink-0 ${location.pathname === item.to ? 'text-blue-400' : ''}`} />
+
+              {isSidebarOpen && (
+                <div className="flex flex-1 items-center justify-between whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">
+                  <span className="text-sm tracking-wide">{item.label}</span>
+                </div>
+              )}
+
+              {/* Tooltip for collapsed mode */}
+              {!isSidebarOpen && (
+                <div className="absolute left-16 bg-slate-900 border border-white/10 text-white text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all whitespace-nowrap z-[120] pointer-events-none">
+                  {item.label}
+                </div>
+              )}
             </Link>
           ))}
-
         </nav>
+
+        {/* Sidebar Footer */}
+        <div className={`p-6 border-t border-white/5 transition-opacity duration-300 ${!isSidebarOpen && 'opacity-0'}`}>
+          <div className="bg-white/5 p-4 rounded-2xl space-y-3">
+             <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                   <FaUserCircle className="text-blue-400" />
+                </div>
+                <div className="min-w-0">
+                   <p className="text-xs font-black text-white truncate">Supplier Name</p>
+                   <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Supplier Account</p>
+                </div>
+             </div>
+          </div>
+        </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      {/* Content Area */}
+      <div className={`flex-1 flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+        ${isPinned ? 'md:pl-72' : 'md:pl-20'}
+      `}>
+        {/* Top Navbar */}
+        <header className="flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-8 py-5 sticky top-0 z-[100]">
 
-        {/* Navbar */}
-        <header className="flex items-center justify-between bg-white shadow px-6 py-4 border-b border-gray-200">
-
-          <div className="flex items-center space-x-3">
+          {/* Search */}
+          <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 w-80">
             <FaSearch className="text-gray-500" />
-
             <input
               type="text"
-              placeholder="Search..."
-              className="border border-gray-300 rounded-md px-3 py-1 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+              placeholder="Search products (press Enter)..."
+              className="ml-2 bg-transparent outline-none w-full text-sm"
             />
           </div>
 
+          {/* Right Icons */}
           <div className="flex items-center space-x-6">
 
+            {/* Notifications */}
             <div className="relative">
+
               <FaBell
-                className="text-gray-600 cursor-pointer hover:text-blue-500 transition duration-300"
+                className="text-gray-600 cursor-pointer hover:text-blue-600"
                 onClick={() => setShowNotifications(!showNotifications)}
               />
+
+              {notificationCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
+                  {notificationCount}
+                </span>
+              )}
 
               <Notifications
                 isOpen={showNotifications}
                 onClose={() => setShowNotifications(false)}
+                notifications={notifications}
               />
+
             </div>
 
+            {/* Profile */}
             <FaUserCircle
-              className="text-gray-600 cursor-pointer hover:text-blue-500 transition duration-300"
-              size={26}
+              className="text-gray-600 cursor-pointer hover:text-blue-600"
+              size={28}
             />
 
+            {/* Logout */}
             <button
               onClick={() => {
                 localStorage.clear();
                 window.location.href = "/login";
               }}
-              className="bg-red-400 text-white px-4 py-1 rounded hover:bg-red-500 transition duration-300"
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
             >
               Logout
             </button>
 
           </div>
+
         </header>
 
-        {/* Main */}
+        {/* Nested Routes */}
         <main className="p-6 flex-1">
-
-          <Routes>
-
-            <Route
-              index
-              element={
-                <div>
-
-                  <h2 className="text-3xl font-bold mb-6 text-gray-700">
-                    📊 Supplier Dashboard Overview
-                  </h2>
-
-                  {/* Stats Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-                    <div className="bg-white p-6 rounded-lg shadow border border-gray-200 transition transform hover:scale-105 duration-300">
-                      <h3 className="text-gray-600 font-semibold">
-                        Total Products
-                      </h3>
-                      <p className="text-3xl font-bold text-blue-600">
-                        120
-                      </p>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-lg shadow border border-gray-200 transition transform hover:scale-105 duration-300">
-                      <h3 className="text-gray-600 font-semibold">
-                        Total Orders
-                      </h3>
-                      <p className="text-3xl font-bold text-green-600">
-                        35
-                      </p>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-lg shadow border border-gray-200 transition transform hover:scale-105 duration-300">
-                      <h3 className="text-gray-600 font-semibold">
-                        Low Stock
-                      </h3>
-                      <p className="text-3xl font-bold text-red-500">
-                        6
-                      </p>
-                    </div>
-
-                  </div>
-
-                  {/* Revenue Section */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    <div className="bg-white p-6 rounded-lg shadow border border-gray-200 transition transform hover:scale-105 duration-300">
-                      <h3 className="text-gray-600 font-semibold">
-                        Monthly Sales
-                      </h3>
-                      <p className="text-2xl font-bold text-blue-600">
-                        ₹75,000
-                      </p>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-lg shadow border border-gray-200 transition transform hover:scale-105 duration-300">
-                      <h3 className="text-gray-600 font-semibold">
-                        Revenue
-                      </h3>
-                      <p className="text-2xl font-bold text-green-600">
-                        ₹1,20,000
-                      </p>
-                    </div>
-
-                  </div>
-
-                  {/* Low Stock Alerts */}
-                  <div className="bg-red-50 border border-red-300 rounded p-4 mt-8 transition hover:shadow-lg duration-300">
-
-                    <h3 className="text-lg font-bold text-red-600 mb-2">
-                      ⚠ Low Stock Alerts
-                    </h3>
-
-                    <ul className="text-red-500">
-                      <li>Rice Bags – 5 left</li>
-                      <li>Cooking Oil – 7 left</li>
-                    </ul>
-
-                  </div>
-
-                </div>
-              }
-            />
-
-            <Route path="products" element={<ProductsPage />} />
-            <Route path="inventory" element={<InventoryPage />} />
-            <Route path="orders" element={<OrdersPage />} />
-            <Route path="billing" element={<BillingPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-
-          </Routes>
-
+          <Outlet />
         </main>
 
       </div>
+
     </div>
   );
 }

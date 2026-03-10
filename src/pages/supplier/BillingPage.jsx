@@ -1,17 +1,34 @@
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+
 export default function BillingPage() {
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('invoice');
+    html2canvas(element).then((canvas) => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF();
+      pdf.addImage(imgData, 'PNG', 0, 0);
+      pdf.save('invoice.pdf');
+    });
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="p-6 min-h-screen bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100">
+    <div className="p-6 min-h-screen bg-[#f8fafc]">
 
       {/* Page Title */}
-      <h2 className="text-3xl font-bold text-purple-700 mb-6">
+      <h2 className="text-4xl font-bold text-blue-800 mb-6">
         🧾 Billing / Invoice
       </h2>
 
       {/* Invoice Card */}
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
+      <div id="invoice" className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
 
         {/* Invoice Header */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white p-6 flex justify-between items-center">
           <div>
             <h3 className="text-xl font-bold">Invoice</h3>
             <p className="text-sm opacity-90">Invoice #INV1023</p>
@@ -41,23 +58,23 @@ export default function BillingPage() {
           {/* Product Table */}
           <table className="w-full rounded-lg overflow-hidden">
 
-            <thead className="bg-indigo-100 text-indigo-700">
+            <thead className="bg-blue-50 text-blue-700">
               <tr>
-                <th className="p-3 text-left">Product</th>
-                <th className="p-3 text-left">Qty</th>
-                <th className="p-3 text-left">Price</th>
+                <th className="p-3 text-left font-semibold">Product</th>
+                <th className="p-3 text-left font-semibold">Qty</th>
+                <th className="p-3 text-left font-semibold">Price</th>
               </tr>
             </thead>
 
             <tbody>
 
-              <tr className="border-b hover:bg-indigo-50 transition">
+              <tr className="border-b hover:bg-blue-50 transition">
                 <td className="p-3 font-medium">📦 Rice Bags</td>
                 <td className="p-3">2</td>
                 <td className="p-3 text-blue-600 font-semibold">₹2400</td>
               </tr>
 
-              <tr className="border-b hover:bg-indigo-50 transition">
+              <tr className="border-b hover:bg-blue-50 transition">
                 <td className="p-3 font-medium">🛢 Oil Bottle</td>
                 <td className="p-3">1</td>
                 <td className="p-3 text-blue-600 font-semibold">₹200</td>
@@ -83,11 +100,11 @@ export default function BillingPage() {
           {/* Buttons */}
           <div className="mt-6 flex space-x-4 justify-end">
 
-            <button className="bg-gray-200 px-5 py-2 rounded-lg shadow hover:bg-gray-300 hover:scale-105 transition">
+            <button onClick={handleDownloadPDF} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg shadow hover:bg-gray-300 hover:scale-105 transition font-semibold">
               📥 Download PDF
             </button>
 
-            <button className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-2 rounded-lg shadow hover:scale-105 transition">
+            <button onClick={handlePrint} className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 hover:scale-105 transition font-semibold">
               🖨 Print Invoice
             </button>
 
