@@ -75,9 +75,6 @@ export default function LoginPage() {
           Login_to_Inventa
         </h2>
 
-<<<<<<< HEAD
-        <form onSubmit={handleSubmit} className="space-y-5">
-=======
         {/* Server Error Message */}
         {serverError && (
           <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-md text-red-600 text-sm text-center">
@@ -86,7 +83,6 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
->>>>>>> 24c45b21e0c51ebe9567d5b6227997552bc3f9c7
 
           {/* Email */}
           <div>

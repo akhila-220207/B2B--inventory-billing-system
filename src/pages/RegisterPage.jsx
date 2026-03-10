@@ -101,9 +101,6 @@ export default function RegisterPage() {
             Create Business Account
           </h2>
 
-<<<<<<< HEAD
-          <form onSubmit={handleSubmit} className="space-y-4">
-=======
           {/* Server Error Message */}
           {serverError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-md text-red-600 text-sm text-center">
@@ -112,7 +109,6 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
->>>>>>> 24c45b21e0c51ebe9567d5b6227997552bc3f9c7
 
             {/* Business Name */}
             <input
@@ -201,11 +197,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-<<<<<<< HEAD
-              className="w-full py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition"
-=======
               className="w-full py-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition disabled:opacity-60"
->>>>>>> 24c45b21e0c51ebe9567d5b6227997552bc3f9c7
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>
