@@ -18,41 +18,45 @@ export default function LandingPage() {
       icon: <FaBoxOpen size={36} />,
       title: "Product Management",
       desc: "Manage products, categories, images, and stock info with ease.",
-      gradient: "from-pink-400 via-red-400 to-yellow-400",
     },
     {
       icon: <FaClipboardList size={36} />,
       title: "Order Management",
       desc: "Track, approve, and manage all incoming and outgoing orders.",
-      gradient: "from-green-400 via-teal-400 to-blue-400",
     },
     {
       icon: <FaFileInvoice size={36} />,
       title: "Billing & Invoices",
       desc: "Generate GST-compliant invoices and manage payments seamlessly.",
-      gradient: "from-purple-400 via-pink-500 to-red-400",
     },
     {
       icon: <FaChartBar size={36} />,
       title: "Reports & Analytics",
       desc: "Get insights with colorful dashboards and actionable reports.",
-      gradient: "from-indigo-400 via-purple-500 to-pink-400",
     },
     {
       icon: <FaWarehouse size={36} />,
       title: "Inventory Tracking",
       desc: "Monitor stock levels, receive low stock alerts, and manage warehouses.",
-      gradient: "from-yellow-400 via-orange-400 to-red-400",
     },
   ];
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-pink-50 via-purple-50 to-yellow-50">
 
+      {/* SCROLLING OFFER BAR */}
+     
+      <div className="bg-blue-600 text-white py-3 overflow-hidden">
+  <div className="marquee text-sm font-medium whitespace-nowrap">
+    🔥 30% OFF Bulk Orders | 🚚 Free Delivery Above ₹5000 | ⭐ Trusted by 500+ Businesses | 📦 10,000+ Products Available | 💰 Exclusive Supplier Discounts | ⚡ Fast B2B Transactions | 🛍 Special Deals Everyday
+  </div>
+</div>
+     
+
       {/* Navbar */}
       <header className="flex justify-between items-center px-8 py-4 bg-white shadow-xl">
         <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600">
-          Inventa
+          Welcome to Inventa
         </h1>
 
         <nav className="space-x-4">
@@ -89,7 +93,7 @@ export default function LandingPage() {
           <div className="flex space-x-4">
 
             <Link
-              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-lg hover:scale-110 transition"
+              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-lg hover:scale-110 transition animate-float"
               to="/register"
             >
               Get Started
@@ -148,10 +152,10 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="py-16 bg-gradient-to-r from-pink-50 via-purple-50 to-yellow-50">
+      <section className="py-16 bg-white">
 
         <div className="max-w-6xl mx-auto px-6 text-center mb-12">
-          <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600">
+          <h2 className="text-4xl font-bold text-black">
             Platform Features
           </h2>
 
@@ -165,15 +169,15 @@ export default function LandingPage() {
           {features.map((feature, i) => (
             <div
               key={i}
-              className={`p-6 rounded-3xl shadow-2xl transform hover:scale-110 transition bg-gradient-to-r ${feature.gradient} text-white`}
+              className="p-6 rounded-3xl border-2 border-black shadow-lg hover:scale-110 transition bg-white text-black"
             >
 
-              <div className="flex items-center justify-center w-20 h-20 rounded-full bg-white/20 mb-4 mx-auto">
+              <div className="flex items-center justify-center w-20 h-20 rounded-full border-2 border-black mb-4 mx-auto">
                 {feature.icon}
               </div>
 
               <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-              <p className="text-white/90 text-sm">{feature.desc}</p>
+              <p className="text-gray-700 text-sm">{feature.desc}</p>
 
             </div>
           ))}
@@ -201,19 +205,9 @@ export default function LandingPage() {
           </div>
 
           <div className="flex space-x-4 mt-4 md:mt-0">
-
-            <a href="https://linkedin.com">
-              <FaLinkedin size={20} />
-            </a>
-
-            <a href="https://twitter.com">
-              <FaTwitter size={20} />
-            </a>
-
-            <a href="https://facebook.com">
-              <FaFacebook size={20} />
-            </a>
-
+            <a href="https://linkedin.com"><FaLinkedin size={20} /></a>
+            <a href="https://twitter.com"><FaTwitter size={20} /></a>
+            <a href="https://facebook.com"><FaFacebook size={20} /></a>
           </div>
 
         </div>
@@ -223,6 +217,32 @@ export default function LandingPage() {
         </div>
 
       </footer>
+
+      {/* Animations */}
+      <style>{`
+
+      .animate-float{
+        animation: float 1.5s ease-in-out infinite;
+      }
+
+      @keyframes float{
+        0%{transform: translateY(0px);}
+        50%{transform: translateY(-12px);}
+        100%{transform: translateY(0px);}
+      }
+
+      .marquee{
+        display:inline-block;
+        padding-left:100%;
+        animation: marquee 15s linear infinite;
+      }
+
+      @keyframes marquee{
+        0%{transform:translateX(0);}
+        100%{transform:translateX(-100%);}
+      }
+
+      `}</style>
 
     </div>
   );

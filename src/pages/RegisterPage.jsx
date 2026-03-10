@@ -69,72 +69,76 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
 
-      {/* Animated Dark Outline */}
+      {/* Animated Outline */}
       <div className="dark-outline p-[2px] rounded-xl">
 
         {/* Register Card */}
-        <div className="bg-white w-full max-w-lg p-10 rounded-xl shadow-xl">
+        <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-xl">
 
-          <h2 className="text-3xl font-bold text-center text-gray-700 mb-8">
+          <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
             Create Business Account
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
 
+            {/* Business Name */}
             <input
               type="text"
               name="business"
               value={formData.business}
               onChange={handleChange}
               placeholder="Business Name"
-              className="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-gray-400"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-gray-400"
             />
             {errors.business && (
               <p className="text-red-500 text-sm">{errors.business}</p>
             )}
 
+            {/* Email */}
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               placeholder="Email"
-              className="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-gray-400"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-gray-400"
             />
             {errors.email && (
               <p className="text-red-500 text-sm">{errors.email}</p>
             )}
 
+            {/* Phone */}
             <input
               type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
               placeholder="Phone"
-              className="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-gray-400"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-gray-400"
             />
             {errors.phone && (
               <p className="text-red-500 text-sm">{errors.phone}</p>
             )}
 
+            {/* Password */}
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               placeholder="Password"
-              className="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-gray-400"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-gray-400"
             />
             {errors.password && (
               <p className="text-red-500 text-sm">{errors.password}</p>
             )}
 
-            {/* Role Buttons */}
-            <div className="flex gap-4">
+            {/* Role Selection */}
+            <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => handleRoleSelect("buyer")}
-                className={`px-4 py-2 border rounded-md ${
+                className={`px-3 py-2 border rounded-md ${
                   formData.role === "buyer"
                     ? "bg-gray-700 text-white"
                     : "hover:bg-gray-200"
@@ -146,7 +150,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => handleRoleSelect("supplier")}
-                className={`px-4 py-2 border rounded-md ${
+                className={`px-3 py-2 border rounded-md ${
                   formData.role === "supplier"
                     ? "bg-gray-700 text-white"
                     : "hover:bg-gray-200"
@@ -160,17 +164,18 @@ export default function RegisterPage() {
               <p className="text-red-500 text-sm">{errors.role}</p>
             )}
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition"
+              className="w-full py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>
 
           </form>
 
-          <p className="text-center mt-6 text-gray-600">
+          <p className="text-center mt-5 text-gray-600">
             Already have an account?{" "}
             <Link to="/login" className="text-blue-600 hover:underline">
               Login
@@ -180,7 +185,7 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Dark Outline Animation */}
+      {/* Outline Animation */}
       <style>{`
         .dark-outline {
           background: linear-gradient(270deg,#111,#444,#111);

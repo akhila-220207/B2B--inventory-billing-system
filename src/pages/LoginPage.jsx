@@ -51,13 +51,13 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
 
       {/* Login Card */}
-      <div className="bg-white rounded-xl w-full max-w-2xl p-10 shadow-xl border-2 border-black">
+      <div className="bg-white rounded-xl w-full max-w-md p-8 shadow-xl border-2 border-black">
 
-        <h2 className="text-3xl font-bold text-center text-gray-700 mb-8">
-          Login to Inventa
+        <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
+          Login_to_Inventa
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
 
           {/* Email */}
           <div>
@@ -104,7 +104,7 @@ export default function LoginPage() {
 
         </form>
 
-        <p className="mt-6 text-center text-gray-600">
+        <p className="mt-5 text-center text-gray-600">
           Don't have an account?{" "}
           <Link to="/register" className="text-blue-500 hover:underline">
             Register
