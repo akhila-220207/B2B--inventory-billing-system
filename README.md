@@ -1,70 +1,57 @@
-# Getting Started with Create React App
+# Inventa B2B Inventory & Billing System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A professional B2B platform for inventory management and billing.
 
-## Available Scripts
+## Project Structure
 
-In the project directory, you can run:
+- `src/`: React frontend source code.
+- `backend/`: Express.js backend API.
+- `db/`: Local MongoDB data (ignored by git).
+- `public/`: Static assets.
 
-### `npm start`
+## Getting Started
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Prerequisites
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- Node.js (v16 or higher)
+- MongoDB (Local or Atlas)
 
-### `npm test`
+### Setup
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/akhila-220207/B2B--inventory-billing-system.git
+   cd B2B--inventory-billing-system
+   ```
 
-### `npm run build`
+2. **Install Dependencies:**
+   Install both frontend and backend dependencies.
+   ```bash
+   npm install
+   cd backend && npm install
+   cd ..
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. **Environment Configuration:**
+   Create a `.env` file in the `backend` directory based on `.env.example`.
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
+   Edit `backend/.env` with your actual MongoDB URI and JWT Secret.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. **Running the Application:**
+   You can start both frontend and backend using the root-level script:
+   ```bash
+   npm run dev
+   ```
+   Alternatively, run the `start.bat` file on Windows.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Scripts
 
-### `npm run eject`
+- `npm run dev`: Starts frontend (3000) and backend (5000) concurrently.
+- `npm start`: Starts only the React frontend.
+- `cd backend && npm start`: Starts only the Express backend.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Deployment
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+The frontend is ready for build using `npm run build`. The backend is designed to work with MongoDB Atlas for easy cloud deployment.

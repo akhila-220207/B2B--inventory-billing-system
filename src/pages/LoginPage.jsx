@@ -1,10 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
+const API_URL = "/api/auth";
+
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
 
   const validate = () => {
     const newErrors = {};
@@ -21,27 +25,41 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError("");
     if (!validate()) return;
 
     setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-    setTimeout(() => {
+      const data = await response.json();
+
+      if (!response.ok) {
+        setServerError(data.message || "Login failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Store JWT token and role in localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+
+      // Redirect based on role
+      if (data.role === "supplier") {
+        navigate("/supplier-dashboard");
+      } else {
+        navigate("/buyer-dashboard");
+      }
+    } catch (err) {
+      setServerError("Cannot connect to server. Make sure the backend is running.");
       setLoading(false);
-
-      const role = formData.email.includes("supplier")
-        ? "supplier"
-        : "buyer";
-
-      localStorage.setItem("role", role);
-      localStorage.setItem("token", "mock-token");
-
-      window.location.href =
-        role === "supplier"
-          ? "/supplier-dashboard"
-          : "/buyer-dashboard";
-    }, 1000);
+    }
   };
 
   const handleChange = (e) =>
@@ -57,7 +75,18 @@ export default function LoginPage() {
           Login_to_Inventa
         </h2>
 
+<<<<<<< HEAD
         <form onSubmit={handleSubmit} className="space-y-5">
+=======
+        {/* Server Error Message */}
+        {serverError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-md text-red-600 text-sm text-center">
+            {serverError}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+>>>>>>> 24c45b21e0c51ebe9567d5b6227997552bc3f9c7
 
           {/* Email */}
           <div>
@@ -97,7 +126,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-md bg-blue-500 text-white font-semibold hover:bg-blue-600 transition"
+            className="w-full py-3 rounded-md bg-blue-500 text-white font-semibold hover:bg-blue-600 transition disabled:opacity-60"
           >
             {loading ? "Logging in..." : "Login"}
           </button>

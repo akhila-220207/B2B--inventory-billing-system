@@ -1,5 +1,4 @@
-// 
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   FaBell,
   FaUserCircle,
@@ -10,114 +9,179 @@ import {
   FaCog,
   FaStore,
   FaClipboardList,
-  FaHome
+  FaHome,
+  FaChevronLeft,
+  FaChevronRight,
+  FaThumbtack
 } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Notifications from "../components/Notifications";
+import { useCart } from "../context/CartContext";
 
 export default function BuyerDashboard() {
-
   const [showNotifications, setShowNotifications] = useState(false);
-  const location = useLocation();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isPinned, setIsPinned] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const hideTimeoutRef = useRef(null);
 
-  const cartItems = 3; // example
-  const notificationCount = 2; // example
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { cartCount } = useCart();
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: "Order #2281 has been accepted", time: "2 hours ago", status: "success" },
+    { id: 2, message: "Stock is low for 'Rice Bags'", time: "5 hours ago", status: "warning" },
+  ]);
+
+  const notificationCount = notifications.length;
+
+  const isSidebarOpen = isPinned || isHovered;
+
+  const handleMouseEnter = () => {
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (!isPinned) {
+      hideTimeoutRef.current = setTimeout(() => {
+        setIsHovered(false);
+      }, 800); // Auto-hide after 800ms
+    } else {
+      setIsHovered(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      navigate(`/buyer-dashboard/marketplace?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   const isActive = (path) =>
-    location.pathname === path ? "bg-blue-600 text-white" : "hover:text-blue-200";
+    location.pathname === path 
+      ? "bg-blue-600/10 text-blue-100 border-r-4 border-blue-400 font-bold" 
+      : "text-blue-200/60 hover:text-white hover:bg-white/5";
+
+  const navItems = [
+    { to: "/buyer-dashboard", icon: FaHome, label: "Home" },
+    { to: "/buyer-dashboard/marketplace", icon: FaStore, label: "Shop" },
+    { to: "/buyer-dashboard/orders", icon: FaClipboardList, label: "Orders" },
+    { to: "/buyer-dashboard/cart", icon: FaShoppingCart, label: "Cart", badge: cartCount },
+    { to: "/buyer-dashboard/invoices", icon: FaFileInvoice, label: "Invoices" },
+    { to: "/buyer-dashboard/reports", icon: FaChartBar, label: "Reports" },
+    { to: "/buyer-dashboard/settings", icon: FaCog, label: "Settings" },
+  ];
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-[#f8fafc] overflow-hidden">
+      
+      {/* Smart Trigger Zone (Invisible) */}
+      {!isSidebarOpen && (
+        <div 
+          onMouseEnter={() => setIsHovered(true)}
+          className="fixed left-0 top-0 w-4 h-full z-[100] cursor-e-resize"
+        />
+      )}
 
-      {/* Sidebar */}
-      <aside className="w-64 bg-blue-700 text-white flex flex-col">
-
-        <div className="p-6 text-2xl font-bold border-b border-blue-600">
-          Inventa
-        </div>
-
-        <nav className="flex-1 p-4 space-y-3">
-
-          <Link
-            to="/buyer-dashboard"
-            className={`flex items-center space-x-2 p-2 rounded ${isActive("/buyer-dashboard")}`}
-          >
-            <FaHome />
-            <span>Dashboard</span>
-          </Link>
-
-          <Link
-            to="/buyer-dashboard/marketplace"
-            className={`flex items-center space-x-2 p-2 rounded ${isActive("/buyer-dashboard/marketplace")}`}
-          >
-            <FaStore />
-            <span>Marketplace</span>
-          </Link>
-
-          <Link
-            to="/buyer-dashboard/orders"
-            className={`flex items-center space-x-2 p-2 rounded ${isActive("/buyer-dashboard/orders")}`}
-          >
-            <FaClipboardList />
-            <span>Orders</span>
-          </Link>
-
-          <Link
-            to="/buyer-dashboard/cart"
-            className={`flex items-center space-x-2 p-2 rounded ${isActive("/buyer-dashboard/cart")}`}
-          >
-            <FaShoppingCart />
-            <span>Cart</span>
-
-            {cartItems > 0 && (
-              <span className="ml-auto bg-red-500 text-xs px-2 py-1 rounded-full">
-                {cartItems}
+      {/* Sidebar Component */}
+      <aside 
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`fixed top-0 left-0 h-full bg-[#0f172a] shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] z-[110] flex flex-col group
+          ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-20 -translate-x-full md:translate-x-0 md:w-20'}
+        `}
+      >
+        {/* Sidebar Header */}
+        <div className="h-20 flex items-center px-6 border-b border-white/5 relative">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20">
+              I
+            </div>
+            {isSidebarOpen && (
+              <span className="text-xl font-black tracking-tighter text-white animate-in fade-in slide-in-from-left-4 duration-500">
+                Inventa<span className="text-blue-500">B2B</span>
               </span>
             )}
-          </Link>
-
-          <Link
-            to="/buyer-dashboard/invoices"
-            className={`flex items-center space-x-2 p-2 rounded ${isActive("/buyer-dashboard/invoices")}`}
+          </div>
+          
+          {/* Pin Toggle */}
+          <button 
+            onClick={() => setIsPinned(!isPinned)}
+            className={`absolute -right-3 top-7 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-90 z-20
+              ${!isSidebarOpen && 'hidden'}
+            `}
           >
-            <FaFileInvoice />
-            <span>Invoices</span>
-          </Link>
+            <FaThumbtack size={10} className={isPinned ? 'rotate-45' : 'rotate-0'} />
+          </button>
+        </div>
 
-          <Link
-            to="/buyer-dashboard/reports"
-            className={`flex items-center space-x-2 p-2 rounded ${isActive("/buyer-dashboard/reports")}`}
-          >
-            <FaChartBar />
-            <span>Reports</span>
-          </Link>
+        {/* Navigation */}
+        <nav className="flex-1 py-10 px-4 space-y-2 overflow-y-auto no-scrollbar">
+          {navItems.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`flex items-center gap-4 p-3.5 rounded-2xl transition-all duration-300 relative group/item
+                ${isActive(item.to)}
+              `}
+            >
+              <item.icon className={`text-xl shrink-0 ${location.pathname === item.to ? 'text-blue-400' : ''}`} />
+              
+              {isSidebarOpen && (
+                <div className="flex flex-1 items-center justify-between whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">
+                  <span className="text-sm tracking-wide">{item.label}</span>
+                  {item.badge > 0 && (
+                    <span className="bg-red-500 text-[10px] font-black px-2 py-0.5 rounded-full text-white shadow-lg shadow-red-500/20">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+              )}
 
-          <Link
-            to="/buyer-dashboard/settings"
-            className={`flex items-center space-x-2 p-2 rounded ${isActive("/buyer-dashboard/settings")}`}
-          >
-            <FaCog />
-            <span>Settings</span>
-          </Link>
-
+              {/* Tooltip for collapsed mode */}
+              {!isSidebarOpen && (
+                <div className="absolute left-16 bg-slate-900 border border-white/10 text-white text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all whitespace-nowrap z-[120] pointer-events-none">
+                  {item.label}
+                </div>
+              )}
+            </Link>
+          ))}
         </nav>
 
+        {/* Sidebar Footer */}
+        <div className={`p-6 border-t border-white/5 transition-opacity duration-300 ${!isSidebarOpen && 'opacity-0'}`}>
+          <div className="bg-white/5 p-4 rounded-2xl space-y-3">
+             <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                   <FaUserCircle className="text-blue-400" />
+                </div>
+                <div className="min-w-0">
+                   <p className="text-xs font-black text-white truncate">John Doe</p>
+                   <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Business Account</p>
+                </div>
+             </div>
+          </div>
+        </div>
       </aside>
 
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-
+      {/* Content Area */}
+      <div className={`flex-1 flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+        ${isPinned ? 'md:pl-72' : 'md:pl-20'}
+      `}>
         {/* Top Navbar */}
-        <header className="flex items-center justify-between bg-white shadow px-6 py-4 sticky top-0 z-10">
+        <header className="flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-8 py-5 sticky top-0 z-[100]">
 
           {/* Search */}
           <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 w-80">
             <FaSearch className="text-gray-500" />
             <input
               type="text"
-              placeholder="Search products, orders..."
-              className="ml-2 bg-transparent outline-none w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+              placeholder="Search products (press Enter)..."
+              className="ml-2 bg-transparent outline-none w-full text-sm"
             />
           </div>
 
@@ -141,6 +205,7 @@ export default function BuyerDashboard() {
               <Notifications
                 isOpen={showNotifications}
                 onClose={() => setShowNotifications(false)}
+                notifications={notifications}
               />
 
             </div>
