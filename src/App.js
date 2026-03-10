@@ -3,10 +3,12 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import BuyerDashboard from "./pages/BuyerDashboard";
+import BuyerOverview from "./pages/BuyerOverview";
 import MarketplacePage from "./pages/MarketplacePage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrdersPage from "./pages/OrdersPage";
+import InvoicesListPage from "./pages/InvoicesListPage";
 import InvoicePage from "./pages/InvoicePage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -30,12 +32,13 @@ export default function App() {
             <BuyerDashboard />
           </ProtectedRoute>
         }>
-          <Route index element={<h2 className="text-2xl font-bold">Welcome to Buyer Dashboard</h2>} />
+          <Route index element={<BuyerOverview />} />
           <Route path="marketplace" element={<MarketplacePage />} />
           <Route path="cart" element={<CartPage />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="orders" element={<OrdersPage />} />
-          <Route path="invoices" element={<InvoicePage />} />
+          <Route path="invoices" element={<InvoicesListPage />} />
+          <Route path="invoice/:orderId" element={<InvoicePage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>

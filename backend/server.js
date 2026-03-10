@@ -4,29 +4,51 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 
 const authRoutes = require('./routes/auth');
+const productRoutes = require('./routes/products');
+const cartRoutes = require('./routes/cart');
+const orderRoutes = require('./routes/orders');
+
 
 const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+}));
 
-// Connect to MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/inventa';
-
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// Routes
+// Route Middlewares
 app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/orders', orderRoutes);
 
-// Basic route for testing
-app.get('/', (req, res) => {
-  res.send('Inventa Backend API is running');
-});
 
+// Database Connection & Server Start
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const MONGODB_URI = process.env.MONGODB_URI;
+
+mongoose.connect(MONGODB_URI, { 
+    // Recommended options for reliability
+    serverSelectionTimeoutMS: 5000,
+    family: 4 
+})
+.then(() => {
+    console.log('✅ MongoDB Atlas connected successfully. Database is ready!');
+    app.listen(PORT, () => {
+        console.log(`🚀 Fresh Backend Server running on http://localhost:${PORT}`);
+    });
+})
+.catch(err => {
+    console.error('❌ Failed to connect to MongoDB Atlas!');
+    console.error('Error details:', err.message);
+    
+    // Still start server to show friendly API error message if DB is down
+    app.listen(PORT, () => {
+        console.log(`⚠️ Server running without database on http://localhost:${PORT}`);
+    });
 });
+
+// Fallback Route
+app.get('/', (req, res) => res.json({ status: 'Online', message: 'Inventa Fresh API' }));

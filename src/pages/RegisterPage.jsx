@@ -1,7 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
+const API_URL = "/api/auth";
+
 export default function RegisterPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     business: "",
     email: "",
@@ -12,6 +15,7 @@ export default function RegisterPage() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
 
   const validate = () => {
     const newErrors = {};
@@ -41,23 +45,41 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError("");
     if (!validate()) return;
 
     setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-    setTimeout(() => {
+      const data = await response.json();
+
+      if (!response.ok) {
+        setServerError(data.message || "Registration failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Store JWT token and role in localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+
+      // Redirect based on role
+      if (data.role === "supplier") {
+        navigate("/supplier-dashboard");
+      } else {
+        navigate("/buyer-dashboard");
+      }
+    } catch (err) {
+      setServerError("Cannot connect to server. Make sure the backend is running.");
       setLoading(false);
-
-      localStorage.setItem("role", formData.role);
-      localStorage.setItem("token", "mock-token");
-
-      window.location.href =
-        formData.role === "supplier"
-          ? "/supplier-dashboard"
-          : "/buyer-dashboard";
-    }, 1000);
+    }
   };
 
   const handleChange = (e) =>
@@ -78,6 +100,13 @@ export default function RegisterPage() {
           <h2 className="text-3xl font-bold text-center text-gray-700 mb-8">
             Create Business Account
           </h2>
+
+          {/* Server Error Message */}
+          {serverError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-md text-red-600 text-sm text-center">
+              {serverError}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
 
@@ -163,7 +192,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition"
+              className="w-full py-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition disabled:opacity-60"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>

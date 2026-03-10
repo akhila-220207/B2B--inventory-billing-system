@@ -1,10 +1,16 @@
 @echo off
-echo Starting Backend Server...
-start "Backend" cmd /k "cd /d C:\Users\acer\Desktop\frontend\backend && node server.js"
+color 0A
+echo ==================================================
+echo         INVENTA B2B SYSTEM - UNIFIED START
+echo ==================================================
+echo.
 
-timeout /t 2 /nobreak >nul
+echo [*] Cleaning up old processes to free ports 3000 and 5000...
+powershell -Command "Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force"
 
-echo Starting Frontend...
-start "Frontend" cmd /k "cd /d C:\Users\acer\Desktop\frontend && npm start"
+echo.
+echo [*] Starting both Frontend and Backend together...
+echo.
+npm run dev
 
-echo Both servers are starting. Check the opened terminal windows.
+pause
