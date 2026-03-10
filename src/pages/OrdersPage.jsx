@@ -6,7 +6,8 @@ import {
   FaCalendarAlt, 
   FaMapMarkerAlt,
   FaChevronRight,
-  FaInfoCircle
+  FaInfoCircle,
+  FaTimesCircle
 } from "react-icons/fa";
 
 const API_BASE = "http://localhost:5000/api";
@@ -37,6 +38,28 @@ export default function OrdersPage() {
     };
     fetchOrders();
   }, []);
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+    
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/orders/${orderId}/cancel`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        setOrders(orders.map(o => o._id === orderId ? { ...o, status: 'Cancelled' } : o));
+        alert("Order cancelled successfully.");
+      } else {
+        const data = await res.json();
+        alert(data.message || "Failed to cancel order.");
+      }
+    } catch (err) {
+      alert("Error connecting to server.");
+    }
+  };
 
   const getStatusStyles = (status) => {
     const map = {
@@ -174,6 +197,16 @@ export default function OrdersPage() {
                       Track Order
                       <FaChevronRight className="text-[10px] group-hover:translate-x-1 transition-transform" />
                     </Link>
+
+                    {order.status === 'Processing' && (
+                      <button
+                        onClick={() => handleCancelOrder(order._id)}
+                        className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-100 px-6 py-3 rounded-xl text-xs font-bold hover:bg-red-600 hover:text-white transition-all group"
+                      >
+                        <FaTimesCircle className="text-[10px]" />
+                        Cancel Order
+                      </button>
+                    )}
                   </div>
                 </div>
                 
