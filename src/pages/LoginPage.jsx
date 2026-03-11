@@ -13,13 +13,17 @@ export default function LoginPage() {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
+    }
 
-    if (!formData.password) newErrors.password = "Password is required";
-    else if (formData.password.length < 6)
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -28,13 +32,17 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setServerError("");
+
     if (!validate()) return;
 
     setLoading(true);
+
     try {
       const response = await fetch(`${API_URL}/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(formData),
       });
 
@@ -46,36 +54,44 @@ export default function LoginPage() {
         return;
       }
 
-      // Store JWT token and role in localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
 
-      // Redirect based on role
       if (data.role === "supplier") {
         navigate("/supplier-dashboard");
       } else {
         navigate("/buyer-dashboard");
       }
-    } catch (err) {
-      setServerError("Cannot connect to server. Make sure the backend is running.");
-      setLoading(false);
+
+    } catch (error) {
+      setServerError("Cannot connect to server. Make sure backend is running.");
     }
+
+    setLoading(false);
   };
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
 
-      {/* Login Card */}
-      <div className="bg-white rounded-xl w-full max-w-md p-8 shadow-xl border-2 border-black">
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{
+        backgroundImage: "url('/log.jpg')"
+      }}
+    >
+
+      <div className="bg-white/90 backdrop-blur-sm rounded-xl w-full max-w-md p-8 shadow-xl border-2 border-black">
 
         <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
-          Login_to_Inventa
+          Login to Inventa
         </h2>
 
-        {/* Server Error Message */}
         {serverError && (
           <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-md text-red-600 text-sm text-center">
             {serverError}
@@ -118,7 +134,7 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* Login Button */}
+          {/* Button */}
           <button
             type="submit"
             disabled={loading}

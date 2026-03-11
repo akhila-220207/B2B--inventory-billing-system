@@ -1,3 +1,4 @@
+
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -66,11 +67,9 @@ export default function RegisterPage() {
         return;
       }
 
-      // Store JWT token and role in localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
 
-      // Redirect based on role
       if (data.role === "supplier") {
         navigate("/supplier-dashboard");
       } else {
@@ -89,7 +88,10 @@ export default function RegisterPage() {
     setFormData({ ...formData, role });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{ backgroundImage: "url('/re.jpg')" }}
+    >
 
       {/* Animated Outline */}
       <div className="dark-outline p-[2px] rounded-xl">
@@ -101,7 +103,6 @@ export default function RegisterPage() {
             Create Business Account
           </h2>
 
-          {/* Server Error Message */}
           {serverError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-md text-red-600 text-sm text-center">
               {serverError}
