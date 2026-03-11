@@ -24,6 +24,9 @@ import SupplierOrdersPage from "./pages/supplier/OrdersPage";
 import BillingPage from "./pages/supplier/BillingPage";
 import SupplierReportsPage from "./pages/supplier/ReportsPage";
 import SupplierSettingsPage from "./pages/supplier/SettingsPage";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 
 export default function App() {
@@ -58,6 +61,7 @@ export default function App() {
         <Route path="/supplier-profile/:supplierId" element={<SupplierProfilePage />} />
         <Route path="/product/:productId" element={<ProductDetailsPage />} />
       </Routes>
+      <ToastContainer position="top-right" autoClose={3000} />
     </Router>
   );
 }
