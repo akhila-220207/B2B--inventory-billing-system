@@ -44,9 +44,9 @@ export default function BuyerOverview() {
       color: "bg-blue-600" 
     },
     { 
-      label: "Acquisition Trends", 
+      label: "Reports", 
       desc: "See your buying habits", 
-      to: "/buyer-dashboard/reports#procurement-velocity", 
+      to: "/buyer-dashboard/reports", 
       icon: FaChartLine, 
       color: "bg-indigo-600" 
     },
@@ -77,7 +77,7 @@ export default function BuyerOverview() {
                  Welcome to Your <span className="text-blue-600">Dashboard</span>
               </h2>
               <p className="max-w-md text-slate-500 font-medium leading-relaxed">
-                 Manage your business here. Check your orders, track shipments, and view your biils all in one place.
+                 Manage your business here. Check your orders, track shipments, and view your bills all in one place.
               </p>
               <div className="mt-8 flex flex-wrap gap-4 justify-center md:justify-start">
                  <button 

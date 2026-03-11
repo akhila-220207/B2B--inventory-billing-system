@@ -50,13 +50,13 @@ export default function CartPage() {
               onClick={() => navigate("/buyer-dashboard/marketplace")}
               className="text-gray-500 hover:text-blue-600 flex items-center gap-2 text-sm font-medium transition mb-2"
             >
-              <FaArrowLeft size={12} /> Return to Marketplace
+              <FaArrowLeft size={12} /> Return to Shop
             </button>
             <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-              B2B Purchase Cart
+              My Cart
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              Review your items and supplier terms before proceeding
+              Review your items before buying
             </p>
           </div>
           <div className="hidden md:flex items-center gap-4 bg-white px-5 py-3 rounded-2xl shadow-sm border border-gray-100">
@@ -74,15 +74,15 @@ export default function CartPage() {
             <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
               <FaShoppingBag className="text-blue-400 text-3xl" />
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Your replenishment cart is empty</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Your cart is empty</h3>
             <p className="text-gray-500 max-w-sm mb-8 text-sm leading-relaxed">
-              Looks like you haven't added any products to your bulk order yet. Browse our marketplace to find premium supplies.
+              Looks like you haven't added any products yet. Browse our shop to find what you need.
             </p>
             <button
               onClick={() => navigate("/buyer-dashboard/marketplace")}
               className="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 font-bold text-sm transition-all shadow-lg shadow-blue-200 active:scale-95"
             >
-              Start Sourcing Now
+              Start Shopping
             </button>
           </div>
         ) : (
@@ -209,7 +209,7 @@ export default function CartPage() {
 
                 <div className="space-y-4 mb-8">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 font-medium">Consolidated Subtotal</span>
+                    <span className="text-gray-500 font-medium">Subtotal</span>
                     <span className="text-gray-900 font-bold">₹{subtotal.toLocaleString("en-IN")}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
@@ -276,7 +276,7 @@ export default function CartPage() {
                     onClick={() => navigate("/buyer-dashboard/marketplace")}
                     className="w-full bg-white hover:bg-gray-50 text-gray-600 py-3 rounded-2xl font-bold text-sm border border-gray-200 transition-all"
                   >
-                    Continue Sourcing
+                    Continue Shopping
                   </button>
                 </div>
                 
@@ -286,7 +286,7 @@ export default function CartPage() {
                          <FaInfoCircle className="text-gray-400" size={14} />
                       </div>
                       <p className="text-[11px] text-gray-400 leading-relaxed font-medium">
-                        By proceeding, you agree to the supplier's bulk purchase agreement and standard B2B transaction protocols.
+                        By proceeding, you agree to our terms of service.
                       </p>
                    </div>
                 </div>
