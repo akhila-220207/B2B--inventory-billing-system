@@ -442,13 +442,17 @@ export default function LandingPage() {
 
 .cursor-glow{
   position:fixed;
-  width:250px;
-  height:250px;
+  top:0;
+  left:0;
+  width:300px;
+  height:300px;
   border-radius:50%;
   pointer-events:none;
-  background:radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%);
+  background:radial-gradient(circle, rgba(59,130,246,0.35) 0%, rgba(59,130,246,0.15) 40%, transparent 70%);
   transform:translate(-50%,-50%);
-  z-index:0;
+  z-index:9999;
+  mix-blend-mode:screen;
+  transition: transform 0.05s linear;
 }
 
 .spark{
@@ -458,6 +462,8 @@ export default function LandingPage() {
   border-radius:50%;
   background:#3b82f6;
   pointer-events:none;
+  z-index:9999;
+  box-shadow:0 0 10px #3b82f6,0 0 20px #3b82f6;
   animation:sparkMove 0.8s linear forwards;
 }
 

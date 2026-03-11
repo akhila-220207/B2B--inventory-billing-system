@@ -119,7 +119,10 @@ export default function RegisterPage() {
   const inputBase = "w-full bg-white/5 border text-white placeholder-slate-600 text-sm rounded-xl py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all hover:bg-white/7";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+   <div
+  className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
+  style={{ backgroundImage: "url('/log.jpg')" }}
+>
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100 my-8">
         
         {/* Logo/Header */}
