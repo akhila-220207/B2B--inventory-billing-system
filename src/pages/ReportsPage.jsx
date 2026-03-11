@@ -55,7 +55,7 @@ export default function ReportsPage() {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Buyer_Audit_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+      pdf.save(`My_Reports_${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
       console.error("Export failed:", error);
       alert("Failed to export report. Please try again.");
@@ -146,7 +146,7 @@ export default function ReportsPage() {
 
         {/* Analytical Content Workspace */}
         <div ref={reportRef} className="space-y-8 bg-white p-10 md:p-16 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30">
-          <div id="procurement-velocity" className="flex items-center gap-4 mb-10 pb-8 border-b border-slate-100 scroll-mt-24">
+          <div id="buying-trends" className="flex items-center gap-4 mb-10 pb-8 border-b border-slate-100 scroll-mt-24">
             <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
               <FaChartLine />
             </div>

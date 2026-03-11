@@ -52,3 +52,54 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* ============================================================
+   PRINT STYLES — Invoice page must fill full width cleanly
+   ============================================================ */
+@media print {
+  /* Force white paper background */
+  body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide sidebar, header, and any fixed nav elements */
+  aside,
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Make content area fill the entire page (remove sidebar padding) */
+  [class*="pl-"] {
+    padding-left: 0 !important;
+  }
+
+  /* Ensure the content wrapper takes full width */
+  .flex-1 {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Remove shadow and background on invoice container */
+  .shadow-2xl,
+  .shadow-xl,
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  /* Page breaks */
+  .page-break {
+    page-break-before: always;
+  }
+
+  /* Scale invoice to fit page */
+  @page {
+    margin: 10mm;
+    size: A4 portrait;
+  }
+}

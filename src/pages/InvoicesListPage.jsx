@@ -81,9 +81,6 @@ export default function InvoicesListPage() {
           <div>
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-2 flex items-center gap-4">
               My <span className="text-blue-600">Invoices</span>
-              <div className="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] rounded-full uppercase tracking-widest border border-blue-100">
-                Official
-              </div>
             </h1>
             <p className="text-slate-500 text-sm font-medium uppercase tracking-widest">View all your bills here</p>
           </div>
@@ -205,9 +202,9 @@ export default function InvoicesListPage() {
         
         {/* Footer Prompt */}
         <div className="mt-12 text-center pb-12">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">Need specific commercial adjustments?</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">Need help?</p>
             <button className="group flex items-center gap-2 mx-auto text-xs font-black text-blue-600 hover:text-blue-700 transition-colors">
-               Contact Billing Support <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
+               Contact Support <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
             </button>
         </div>
       </div>

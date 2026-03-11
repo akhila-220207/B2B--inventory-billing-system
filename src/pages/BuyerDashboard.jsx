@@ -88,7 +88,7 @@ export default function BuyerDashboard() {
       <aside 
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`fixed top-0 left-0 h-full bg-[#0f172a] shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] z-[110] flex flex-col group
+        className={`fixed top-0 left-0 h-full bg-[#0f172a] shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] z-[110] flex flex-col group print:hidden
           ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-20 -translate-x-full md:translate-x-0 md:w-20'}
         `}
       >
@@ -170,7 +170,7 @@ export default function BuyerDashboard() {
         ${isPinned ? 'md:pl-72' : 'md:pl-20'}
       `}>
         {/* Top Navbar */}
-        <header className="flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-8 py-5 sticky top-0 z-[100]">
+        <header className="flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-8 py-5 sticky top-0 z-[100] print:hidden">
 
           {/* Search */}
           <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 w-80">

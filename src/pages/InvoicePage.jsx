@@ -76,7 +76,7 @@ export default function InvoicePage() {
     }
   };
 
-  if (loading) return <div className="p-10 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Generating Billing Document...</div>;
+  if (loading) return <div className="p-10 text-center text-gray-400 font-bold uppercase tracking-widest animate-pulse">Loading Invoice...</div>;
 
   if (error || !order) return (
     <div className="p-10 text-center">
@@ -149,15 +149,15 @@ export default function InvoicePage() {
            </div>
            <div className="text-left md:text-right mt-10 md:mt-0 flex flex-col justify-between h-full py-2">
               <div className="space-y-2">
-                 <h2 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em] mb-1">Commercial Invoice</h2>
+                 <h2 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em] mb-1">Invoice</h2>
                  <p className="text-3xl font-black text-slate-900 leading-none">#{order._id.slice(-8).toUpperCase()}</p>
               </div>
               <div className="mt-8 space-y-2 text-xs font-black text-slate-500">
-                 <p className="flex md:justify-end gap-2 text-[10px] uppercase tracking-widest">Requisition Date: <span className="text-slate-900">{new Date(order.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })}</span></p>
-                 <p className="flex md:justify-end gap-2 text-[10px] uppercase tracking-widest">Settlement Due: <span className="text-slate-900">{new Date(new Date(order.createdAt).getTime() + 30*24*60*60*1000).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })}</span></p>
+                 <p className="flex md:justify-end gap-2 text-[10px] uppercase tracking-widest">Order Date: <span className="text-slate-900">{new Date(order.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })}</span></p>
+                 <p className="flex md:justify-end gap-2 text-[10px] uppercase tracking-widest">Due Date: <span className="text-slate-900">{new Date(new Date(order.createdAt).getTime() + 30*24*60*60*1000).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })}</span></p>
                  <div className="mt-4 flex md:justify-end">
                     <span className="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.1em]">
-                      Net 30 Terms
+                      Payment terms: 30 days
                     </span>
                  </div>
               </div>
@@ -171,7 +171,7 @@ export default function InvoicePage() {
                  <FaUser size={10} /> Bill To
               </h3>
               <div className="text-sm">
-                 <p className="font-black text-gray-900 text-lg mb-2">Authenticated Buyer Account</p>
+                 <p className="font-black text-gray-900 text-lg mb-2">Buyer</p>
                  <div className="text-gray-500 font-medium leading-relaxed">
                     <p>{order.shippingAddress}</p>
                     <p>Contact: +91 98765 43210</p>
@@ -181,7 +181,7 @@ export default function InvoicePage() {
            </div>
            <div className="text-left md:text-right">
               <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2 justify-start md:justify-end">
-                 <FaBuilding size={10} /> Sourced From
+                 <FaBuilding size={10} /> Seller
               </h3>
               <div className="text-sm">
                  <p className="font-black text-gray-900 text-lg mb-2">{order.items[0]?.supplier || 'Verified Supplier'}</p>
@@ -199,10 +199,10 @@ export default function InvoicePage() {
            <table className="w-full text-left">
               <thead>
                  <tr className="bg-gray-50 text-gray-400 text-[10px] font-black uppercase tracking-widest border-y border-gray-100">
-                    <th className="px-6 py-4">Item Catalog Description</th>
-                    <th className="px-6 py-4 text-center">Batch Qty</th>
+                    <th className="px-6 py-4">Product</th>
+                    <th className="px-6 py-4 text-center">Quantity</th>
                     <th className="px-6 py-4 text-right">Unit Price</th>
-                    <th className="px-6 py-4 text-right">Ext. Price</th>
+                    <th className="px-6 py-4 text-right">Total</th>
                  </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -226,12 +226,10 @@ export default function InvoicePage() {
            <div className="max-w-sm">
               <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 shadow-inner">
                  <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <FaFileInvoiceDollar /> Marketplace Memo
+                    <FaFileInvoiceDollar /> Note
                  </h4>
                  <p className="text-[11px] text-slate-500 leading-relaxed font-bold uppercase tracking-wide opacity-80">
-                   This digital instrument is generated by the Inventa Marketplace Protocol. 
-                   Settlement is strictly governed by standard B2B trade agreements and 
-                   regulatory tax compliance.
+                   This is a computer generated invoice. No signature is required.
                  </p>
               </div>
            </div>
@@ -258,17 +256,16 @@ export default function InvoicePage() {
         <div className="mt-24 pt-12 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-12 opacity-60">
            <div className="flex items-center gap-6">
               <div className="w-14 h-14 border-4 border-slate-200 rounded-2xl flex items-center justify-center text-lg font-black text-slate-300">
-                SC
+                ✔️
               </div>
               <div>
-                 <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Secure Certification</p>
-                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Verified by B2B Logistics Hub</p>
+                 <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Verified</p>
+                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">by Inventa Hub</p>
               </div>
            </div>
            <div className="text-center md:text-right">
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-3">Authorised Electronic Signatory</p>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-3">Signature</p>
               <div className="w-48 h-10 border-b-2 border-slate-200 ml-auto bg-slate-50/50 mb-2 rounded-t-xl"></div>
-              <p className="text-[11px] font-black text-slate-900 uppercase tracking-wider">System Generated Document</p>
            </div>
         </div>
       </div>
