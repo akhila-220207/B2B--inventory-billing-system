@@ -1,6 +1,23 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const Product = require('../models/Product');
+
+// Middleware: Authenticate JWT
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'No token, authorize denied' });
+  }
+  try {
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded.user;
+    next();
+  } catch (err) {
+    res.status(401).json({ message: 'Token is invalid' });
+  }
+};
 
 // 20+ seed products for B2B marketplace
 const seedProducts = [
@@ -404,6 +421,42 @@ router.get('/', async (req, res) => {
     res.json({ products, categories, suppliers });
   } catch (err) {
     console.error('Products fetch error:', err.message);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// POST /api/products — Add a new product (Supplier only)
+router.post('/', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'supplier') {
+      return res.status(403).json({ message: 'Only suppliers can add products' });
+    }
+
+    const { name, description, price, unit, category, stock, stockQty, image, minOrderQty } = req.body;
+
+    if (!name || price === undefined || !category) {
+      return res.status(400).json({ message: 'Name, price, and category are required' });
+    }
+
+    const newProduct = new Product({
+      name,
+      description,
+      price,
+      unit,
+      category,
+      supplier: req.user.business || req.user.name,
+      supplierId: req.user.id,
+      stock,
+      stockQty,
+      image,
+      minOrderQty,
+      rating: 0
+    });
+
+    const savedProduct = await newProduct.save();
+    res.status(201).json(savedProduct);
+  } catch (err) {
+    console.error('Product add error:', err.message);
     res.status(500).json({ message: 'Server Error' });
   }
 });

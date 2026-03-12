@@ -35,7 +35,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // POST /api/cart/add — Add item to cart
 router.post('/add', authMiddleware, async (req, res) => {
   try {
-    const { productId, name, price, supplier, image, unit, quantity } = req.body;
+    const { productId, name, price, supplier, supplierId, image, unit, quantity } = req.body;
 
     let cart = await Cart.findOne({ userId: req.user.id });
 
@@ -50,7 +50,7 @@ router.post('/add', authMiddleware, async (req, res) => {
     if (existingIndex > -1) {
       cart.items[existingIndex].quantity += quantity || 1;
     } else {
-      cart.items.push({ productId, name, price, supplier, image, unit, quantity: quantity || 1 });
+      cart.items.push({ productId, name, price, supplier, supplierId, image, unit, quantity: quantity || 1 });
     }
 
     await cart.save();

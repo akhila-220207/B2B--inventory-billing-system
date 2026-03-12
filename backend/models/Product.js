@@ -30,7 +30,7 @@ const productSchema = new mongoose.Schema({
     trim: true
   },
   supplierId: {
-    type: Number,
+    type: String,
     required: true
   },
   stock: {

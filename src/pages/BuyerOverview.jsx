@@ -13,9 +13,19 @@ const API_BASE = "http://localhost:5000/api";
 
 export default function BuyerOverview() {
   const [stats, setStats] = useState({ orders: 0, spending: 0, items: 0 });
+  const [userName, setUserName] = useState("Buyer");
   const navigate = useNavigate();
 
   useEffect(() => {
+    const business = localStorage.getItem("userBusiness");
+    const name = localStorage.getItem("userName");
+    
+    if (business && business !== "undefined") {
+      setUserName(business);
+    } else if (name && name !== "undefined") {
+      setUserName(name);
+    }
+    
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -80,7 +90,7 @@ export default function BuyerOverview() {
 
           <div className="text-center md:text-left">
             <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-4">
-              Welcome to Your <span className="text-blue-600">Dashboard</span>
+              Welcome, <span className="text-blue-600">{userName}</span>
             </h2>
 
             <p className="max-w-md text-slate-500 font-medium leading-relaxed">

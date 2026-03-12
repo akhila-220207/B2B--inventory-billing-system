@@ -16,6 +16,10 @@ export default function LoginPage() {
   const handleSuccessRedirect = useCallback((data) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("role", data.role);
+    if (data.name) localStorage.setItem("userName", data.name);
+    if (data.business) localStorage.setItem("userBusiness", data.business);
+    if (data.email) localStorage.setItem("userEmail", data.email);
+    if (data.phone) localStorage.setItem("userPhone", data.phone);
     if (data.role === "supplier") navigate("/supplier-dashboard");
     else navigate("/buyer-dashboard");
   }, [navigate]);

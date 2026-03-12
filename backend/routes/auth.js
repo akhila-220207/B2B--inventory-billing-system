@@ -51,6 +51,10 @@ router.post('/register', async (req, res) => {
         res.status(201).json({ 
           token, 
           role: user.role,
+          business: user.business,
+          email: user.email,
+          phone: user.phone,
+          name: user.business, // using business as name if not present
           message: 'User registered successfully!'
         });
       }
@@ -94,7 +98,14 @@ router.post('/login', async (req, res) => {
       { expiresIn: '10h' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token, role: user.role });
+        res.json({ 
+          token, 
+          role: user.role,
+          business: user.business,
+          email: user.email,
+          phone: user.phone,
+          name: user.business // using business as name
+        });
       }
     );
 

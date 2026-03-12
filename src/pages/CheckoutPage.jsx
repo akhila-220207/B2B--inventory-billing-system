@@ -49,6 +49,7 @@ export default function CheckoutPage() {
             price: item.price,
             quantity: item.quantity,
             supplier: item.supplier,
+            supplierId: item.supplierId,
             image: item.image
           })),
           totalAmount: total,

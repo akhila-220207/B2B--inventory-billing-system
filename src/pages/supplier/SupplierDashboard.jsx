@@ -24,6 +24,9 @@ export default function SupplierDashboard() {
   const [isHovered, setIsHovered] = useState(false);
   const hideTimeoutRef = useRef(null);
 
+  const userName = localStorage.getItem("userBusiness") || localStorage.getItem("userName") || "Supplier";
+  const userInitial = userName.charAt(0).toUpperCase();
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -151,7 +154,7 @@ export default function SupplierDashboard() {
                    <FaUserCircle className="text-blue-400" />
                 </div>
                 <div className="min-w-0">
-                   <p className="text-xs font-black text-white truncate">Supplier Name</p>
+                   <p className="text-xs font-black text-white truncate">{userName}</p>
                    <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Supplier Account</p>
                 </div>
              </div>

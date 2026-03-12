@@ -1,9 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaSearch, FaBox, FaPlus, FaEdit, FaTrash,
-  FaSave, FaTimes, FaRupeeSign, FaLayerGroup, FaTag
+  FaSave, FaTimes, FaRupeeSign, FaLayerGroup, FaTag, FaImage
 } from "react-icons/fa";
+
+const API_BASE = "http://localhost:5000/api";
 
 // ── Sample Data ───────────────────────────────────────────────
 const INITIAL_PRODUCTS = [
@@ -17,7 +19,7 @@ const INITIAL_PRODUCTS = [
 
 const CATEGORIES = ["Grains", "Beverages", "Personal Care", "Dairy", "Spices", "Snacks", "Other"];
 
-const EMPTY_FORM = { name: "", price: "", stock: "", category: "Grains", status: "Active" };
+const EMPTY_FORM = { name: "", price: "", stock: "", category: "Grains", status: "Active", image: "" };
 
 // ── Helpers ───────────────────────────────────────────────────
 function getStockBadge(stock) {
@@ -77,7 +79,7 @@ function FSelect({ value, onChange, options }) {
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function ProductsPage() {
-  const [products, setProducts]         = useState(INITIAL_PRODUCTS);
+  const [products, setProducts]         = useState([]);
   const [form, setForm]                 = useState(EMPTY_FORM);
   const [editingId, setEditingId]       = useState(null);
   const [searchTerm, setSearchTerm]     = useState("");
@@ -89,6 +91,29 @@ export default function ProductsPage() {
   const [sortDir, setSortDir]           = useState("asc");
   const [toast, setToast]               = useState(null);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [loading, setLoading]           = useState(true);
+
+  // Load products from backend for this supplier
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE}/products`);
+        if (res.ok) {
+           const data = await res.json();
+           const business = localStorage.getItem("userBusiness") || localStorage.getItem("userName");
+           // Only show the supplier's own products
+           const myProducts = data.products.filter(p => p.supplier === business);
+           setProducts(myProducts);
+        }
+      } catch (err) {
+        showToast("Error loading products", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   // ── Toast ──────────────────────────────────────────────────
   const showToast = (msg, type = "success") => {
@@ -99,8 +124,17 @@ export default function ProductsPage() {
   // ── Field helper ──────────────────────────────────────────
   const set = (key) => (e) => setForm(p => ({ ...p, [key]: e.target.value }));
 
-  // ── CRUD ──────────────────────────────────────────────────
-  const handleSubmit = () => {
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+       setForm(p => ({ ...p, image: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async () => {
     if (!form.name.trim() || !form.price || !form.stock) {
       showToast("Please fill all required fields", "error"); return;
     }
@@ -108,28 +142,54 @@ export default function ProductsPage() {
       showToast("Price must be > 0 and stock ≥ 0", "error"); return;
     }
 
-    if (editingId) {
-      setProducts(prev => prev.map(p => p._id === editingId
-        ? { ...p, ...form, price: Number(form.price), stock: Number(form.stock) }
-        : p));
-      showToast("Product updated successfully");
-    } else {
-      setProducts(prev => [...prev, {
-        ...form,
-        _id: Date.now().toString(),
-        price: Number(form.price),
-        stock: Number(form.stock),
-      }]);
-      showToast("Product added successfully");
+    try {
+      const token = localStorage.getItem("token");
+      if (editingId) {
+        // Mock update for now (backend only handles POST in this demo)
+        setProducts(prev => prev.map(p => p._id === editingId
+          ? { ...p, ...form, price: Number(form.price), stockQty: Number(form.stock) }
+          : p));
+        showToast("Product updated successfully");
+      } else {
+        const payload = {
+          name: form.name,
+          price: Number(form.price),
+          stockQty: Number(form.stock),
+          stock: Number(form.stock) > 0 ? "Available" : "Out of Stock",
+          category: form.category || "Other",
+          image: form.image
+        };
+
+        const res = await fetch(`${API_BASE}/products`, {
+           method: "POST",
+           headers: {
+             "Content-Type": "application/json",
+             Authorization: `Bearer ${token}`
+           },
+           body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+           const saved = await res.json();
+           setProducts(prev => [...prev, saved]);
+           showToast("Product added successfully");
+        } else {
+           const errData = await res.json();
+           showToast(errData.message || "Failed to add product", "error");
+           return;
+        }
+      }
+      setForm(EMPTY_FORM);
+      setEditingId(null);
+      setShowForm(false);
+    } catch (err) {
+       showToast("Network error. Could not save product.", "error");
     }
-    setForm(EMPTY_FORM);
-    setEditingId(null);
-    setShowForm(false);
   };
 
   const handleEdit = (id) => {
     const p = products.find(p => p._id === id);
-    setForm({ name: p.name, price: p.price, stock: p.stock, category: p.category, status: p.status });
+    setForm({ name: p.name, price: p.price, stock: p.stockQty || p.stock, category: p.category, status: p.status || "Active", image: p.image || "" });
     setEditingId(id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -273,8 +333,12 @@ export default function ProductsPage() {
               <Field label="Category" icon={FaBox}>
                 <FSelect value={form.category} onChange={set("category")} options={CATEGORIES} />
               </Field>
-              <Field label="Status" icon={FaTag}>
-                <FSelect value={form.status} onChange={set("status")} options={["Active", "Inactive"]} />
+              <Field label="Product Image" icon={FaImage}>
+                <input type="file" accept="image/*" onChange={handleImageUpload} style={{
+                    width: "100%", padding: "7px 10px", borderRadius: 9,
+                    border: "2px solid #e5e7eb", background: "#f9fafb", fontSize: 13
+                }} />
+                {form.image && <img src={form.image} alt="Preview" style={{ marginTop: 8, height: 40, borderRadius: 6, objectFit: "cover" }} />}
               </Field>
               <div style={{ flex: 1, minWidth: 140, display: "flex", alignItems: "flex-end", gap: 10 }}>
                 <button onClick={handleSubmit} style={{
@@ -348,6 +412,9 @@ export default function ProductsPage() {
         </div>
 
         <div style={{ overflowX: "auto" }}>
+          {loading ? (
+             <div style={{ padding: 40, textAlign: "center", color: "#64748b", fontWeight: "bold" }}>Loading your products...</div>
+          ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#f8fafc", borderBottom: "2px solid #e2e8f0" }}>
@@ -379,7 +446,8 @@ export default function ProductsPage() {
                   No products match your search.
                 </td></tr>
               ) : filtered.map((p, i) => {
-                const sb = getStockBadge(p.stock);
+                const stockVal = typeof p.stock === 'number' ? p.stock : (p.stockQty || 0);
+                const sb = getStockBadge(stockVal);
                 return (
                   <tr key={p._id} style={{
                     borderBottom: "1px solid #f1f5f9",
@@ -392,11 +460,15 @@ export default function ProductsPage() {
                     <td style={{ padding: "13px 14px", color: "#94a3b8", fontSize: 12 }}>{i + 1}</td>
                     <td style={{ padding: "13px 14px", fontWeight: 700, color: "#0f172a", fontSize: 13 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div style={{
-                          width: 30, height: 30, borderRadius: 8,
-                          background: "linear-gradient(135deg,#eff6ff,#dbeafe)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                        }}><FaBox color="#3b82f6" size={12} /></div>
+                        {p.image ? (
+                          <img src={p.image} alt="" style={{ width: 30, height: 30, borderRadius: 8, objectFit: "cover" }} />
+                        ) : (
+                          <div style={{
+                            width: 30, height: 30, borderRadius: 8,
+                            background: "linear-gradient(135deg,#eff6ff,#dbeafe)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                          }}><FaBox color="#3b82f6" size={12} /></div>
+                        )}
                         {p.name}
                       </div>
                     </td>
@@ -409,10 +481,10 @@ export default function ProductsPage() {
                     <td style={{ padding: "13px 14px", fontWeight: 700, color: "#0f172a", fontSize: 13 }}>₹{p.price.toLocaleString()}</td>
                     <td style={{
                       padding: "13px 14px", fontWeight: 800, fontSize: 14,
-                      color: p.stock === 0 ? "#b91c1c" : p.stock <= 15 ? "#b45309" : "#15803d",
-                    }}>{p.stock}</td>
+                      color: stockVal === 0 ? "#b91c1c" : stockVal <= 15 ? "#b45309" : "#15803d",
+                    }}>{stockVal}</td>
                     <td style={{ padding: "13px 14px", color: "#7c3aed", fontWeight: 700, fontSize: 13 }}>
-                      ₹{(p.price * p.stock).toLocaleString()}
+                      ₹{(p.price * stockVal).toLocaleString()}
                     </td>
                     <td style={{ padding: "13px 14px" }}>
                       <span style={{
@@ -449,6 +521,7 @@ export default function ProductsPage() {
               })}
             </tbody>
           </table>
+          )}
         </div>
 
         <div style={{

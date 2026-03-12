@@ -25,6 +25,9 @@ export default function BuyerDashboard() {
   const [isHovered, setIsHovered] = useState(false);
   const hideTimeoutRef = useRef(null);
 
+  const userName = localStorage.getItem("userBusiness") || localStorage.getItem("userName") || "User";
+  const userInitial = userName.charAt(0).toUpperCase();
+
   const location = useLocation();
   const navigate = useNavigate();
   const { cartCount } = useCart();
@@ -157,7 +160,7 @@ export default function BuyerDashboard() {
                    <FaUserCircle className="text-blue-400" />
                 </div>
                 <div className="min-w-0">
-                   <p className="text-xs font-black text-white truncate">John Doe</p>
+                   <p className="text-xs font-black text-white truncate">{userName}</p>
                    <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Business Account</p>
                 </div>
              </div>

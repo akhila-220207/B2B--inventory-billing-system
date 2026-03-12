@@ -9,6 +9,10 @@ const cartItemSchema = new mongoose.Schema({
   name: String,
   price: Number,
   supplier: String,
+  supplierId: {
+    type: String,
+    required: true
+  },
   image: String,
   unit: String,
   quantity: {

@@ -10,6 +10,10 @@ const orderItemSchema = new mongoose.Schema({
   price: Number,
   quantity: Number,
   supplier: String,
+  supplierId: {
+    type: String,
+    required: true
+  },
   image: String
 });
 
