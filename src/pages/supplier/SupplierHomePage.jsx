@@ -1,4 +1,4 @@
-
+//this is home page  of supplier dashboard
 import { useState } from "react";
 import {
   FaShoppingCart, FaBox, FaUsers, FaRupeeSign,
