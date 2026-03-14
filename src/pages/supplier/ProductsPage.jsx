@@ -1,4 +1,4 @@
-
+//this is products page
 import { useState, useEffect } from "react";
 import {
   FaSearch, FaBox, FaPlus, FaEdit, FaTrash,
