@@ -1,4 +1,4 @@
-#this is supplier dashboard
+//his is supplier dashboard
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   FaBell,
