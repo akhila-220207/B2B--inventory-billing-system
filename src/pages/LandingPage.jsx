@@ -444,8 +444,8 @@ export default function LandingPage() {
   position:fixed;
   top:0;
   left:0;
-  width:300px;
-  height:300px;
+  width:200px;
+  height:200px;
   border-radius:50%;
   pointer-events:none;
   background:radial-gradient(circle, rgba(59,130,246,0.35) 0%, rgba(59,130,246,0.15) 40%, transparent 70%);
