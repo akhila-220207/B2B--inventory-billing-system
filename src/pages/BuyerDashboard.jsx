@@ -140,7 +140,7 @@ export default function BuyerDashboard() {
                 </div>
               )}
 
-              {/* Tooltip for collapsed mode */}
+            
               {!isSidebarOpen && (
                 <div className="absolute left-16 bg-slate-900 border border-white/10 text-white text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all whitespace-nowrap z-[120] pointer-events-none">
                   {item.label}
