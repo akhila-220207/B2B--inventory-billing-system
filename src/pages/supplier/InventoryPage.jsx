@@ -1,7 +1,7 @@
 //this is inventory page
 import { useState, useEffect } from "react";
 
-const API_BASE = "http://localhost:5000/api";const NAV_ITEMS = [
+const API_BASE = "http://127.0.0.1:5000/api";const NAV_ITEMS = [
   { label: "Home", icon: "⌂" },
   { label: "Products", icon: "▦" },
   { label: "Inventory", icon: "▤", active: true },

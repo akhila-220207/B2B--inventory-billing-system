@@ -374,6 +374,10 @@ const seedIfEmpty = async () => {
 
 seedIfEmpty();
 
+let cachedCategories = null;
+let cachedSuppliers = null;
+let lastCacheTime = 0;
+
 // GET /api/products — supports search, category, supplier, stockStatus, sortPrice
 router.get('/', async (req, res) => {
   try {
@@ -412,13 +416,18 @@ router.get('/', async (req, res) => {
 
     const products = await productsQuery.lean();
 
-    // Also return unique categories and suppliers for filter dropdowns
-    const [categories, suppliers] = await Promise.all([
-      Product.distinct('category'),
-      Product.distinct('supplier')
-    ]);
+    // Cache unique categories and suppliers to eliminate 2 extra DB roundtrips
+    if (!cachedCategories || !cachedSuppliers || Date.now() - lastCacheTime > 60000) {
+      const [categories, suppliers] = await Promise.all([
+        Product.distinct('category'),
+        Product.distinct('supplier')
+      ]);
+      cachedCategories = categories;
+      cachedSuppliers = suppliers;
+      lastCacheTime = Date.now();
+    }
 
-    res.json({ products, categories, suppliers });
+    res.json({ products, categories: cachedCategories, suppliers: cachedSuppliers });
   } catch (err) {
     console.error('Products fetch error:', err.message);
     res.status(500).json({ message: 'Server Error' });

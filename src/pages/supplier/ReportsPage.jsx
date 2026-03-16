@@ -19,8 +19,8 @@ export default function ReportsPage() {
       try {
         const token = localStorage.getItem("token");
         const [ordersRes, productsRes] = await Promise.all([
-          fetch("http://localhost:5000/api/orders", { headers: { Authorization: `Bearer ${token}` } }),
-          fetch("http://localhost:5000/api/products")
+          fetch("http://127.0.0.1:5000/api/orders", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("http://127.0.0.1:5000/api/products")
         ]);
         
         if (ordersRes.ok && productsRes.ok) {
@@ -215,4 +215,4 @@ export default function ReportsPage() {
     </div>
   );
 }
-
+

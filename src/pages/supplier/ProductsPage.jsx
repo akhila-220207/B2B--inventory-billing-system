@@ -5,7 +5,7 @@ import {
   FaSave, FaTimes, FaRupeeSign, FaLayerGroup, FaTag, FaImage
 } from "react-icons/fa";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "http://127.0.0.1:5000/api";
 
 // ── Sample Data ───────────────────────────────────────────────
 const INITIAL_PRODUCTS = [

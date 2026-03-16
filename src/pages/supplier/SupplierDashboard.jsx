@@ -79,20 +79,12 @@ export default function SupplierDashboard() {
   return (
     <div className="flex min-h-screen bg-[#f8fafc] overflow-hidden">
 
-      {/* Smart Trigger Zone (Invisible) */}
-      {!isSidebarOpen && (
-        <div
-          onMouseEnter={() => setIsHovered(true)}
-          className="fixed left-0 top-0 w-4 h-full z-[100] cursor-e-resize"
-        />
-      )}
-
       {/* Sidebar Component */}
       <aside
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`fixed top-0 left-0 h-full bg-[#0f172a] shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] z-[110] flex flex-col group
-          ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-20 -translate-x-full md:translate-x-0 md:w-20'}
+        className={`fixed top-0 left-0 h-full bg-[#0f172a] shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] z-[110] flex flex-col
+          ${isSidebarOpen ? 'w-72' : 'w-20'}
         `}
       >
         {/* Sidebar Header */}
@@ -165,7 +157,7 @@ export default function SupplierDashboard() {
 
       {/* Content Area */}
       <div className={`flex-1 flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
-        ${isPinned ? 'md:pl-72' : 'md:pl-20'}
+        ${isSidebarOpen ? 'pl-72' : 'pl-20'}
       `}>
         {/* Top Navbar */}
         <header className="flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-8 py-5 sticky top-0 z-[100]">

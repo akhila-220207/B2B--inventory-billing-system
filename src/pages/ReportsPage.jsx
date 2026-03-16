@@ -17,7 +17,7 @@ export default function ReportsPage() {
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/orders", {
+        const res = await fetch("http://127.0.0.1:5000/api/orders", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -234,4 +234,4 @@ export default function ReportsPage() {
       </div>
     </div>
   );
-}
+}

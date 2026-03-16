@@ -1,13 +1,13 @@
 
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useCallback } from "react";
-import { GoogleLogin, useGoogleOneTapLogin } from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
 import {
   FaBuilding, FaEnvelope, FaPhoneAlt, FaLock,
   FaShoppingBag, FaWarehouse
 } from "react-icons/fa";
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = "http://127.0.0.1:5000/api/auth";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -75,13 +75,7 @@ export default function RegisterPage() {
     }
   }, [handleSuccessRedirect, formData.role]);
 
-  // Google One Tap — auto-shows floating sign-in prompt on page load
-  useGoogleOneTapLogin({
-    onSuccess: handleGoogleSuccess,
-    onError: () => setServerError("Google One Tap failed. Try again."),
-    cancel_on_tap_outside: false,
-    use_fedcm_for_prompt: true,
-  });
+  // Note: useGoogleOneTapLogin removed — it conflicts with the GoogleLogin button.
 
   const validate = () => {
     const newErrors = {};
@@ -173,7 +167,6 @@ export default function RegisterPage() {
             size="large"
             width="340"
             text="signup_with"
-            use_fedcm_for_prompt
           />
         </div>
 

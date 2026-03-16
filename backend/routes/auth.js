@@ -235,6 +235,9 @@ router.post('/google/complete', async (req, res) => {
         return res.status(201).json({ 
           token: jwtToken, 
           role: user.role,
+          business: user.business,
+          email: user.email,
+          name: user.business,
           message: 'User registered successfully!'
         });
       }
