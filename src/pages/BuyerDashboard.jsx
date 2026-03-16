@@ -86,8 +86,6 @@ export default function BuyerDashboard() {
           className="fixed left-0 top-0 w-4 h-full z-[100] cursor-e-resize"
         />
       )}
-
-      {/* Sidebar Component */}
       <aside 
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
