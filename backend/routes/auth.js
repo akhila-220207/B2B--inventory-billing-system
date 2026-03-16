@@ -32,13 +32,19 @@ router.post('/register', async (req, res) => {
       role
     });
 
-    await user.save();
+    try {
+      await user.save();
+    } catch (saveErr) {
+      console.error('User save error:', saveErr);
+      throw saveErr;
+    }
 
     // Create JWT
     const payload = {
       user: {
         id: user.id,
-        role: user.role
+        role: user.role,
+        business: user.business
       }
     };
 
@@ -61,8 +67,8 @@ router.post('/register', async (req, res) => {
     );
 
   } catch (err) {
-    console.error('Registration error:', err.message);
-    res.status(500).json({ message: 'Server Error' });
+    console.error('Registration error:', err.stack || err.message);
+    res.status(500).json({ message: 'Server Error', details: err.message });
   }
 });
 
@@ -88,7 +94,8 @@ router.post('/login', async (req, res) => {
     const payload = {
       user: {
         id: user.id,
-        role: user.role
+        role: user.role,
+        business: user.business
       }
     };
 
@@ -119,7 +126,7 @@ router.post('/login', async (req, res) => {
 // @desc    Authenticate user with Google & get token
 router.post('/google', async (req, res) => {
   try {
-    const { token } = req.body;
+    const { token, role: requestedRole } = req.body;
 
     if (!token) {
       return res.status(400).json({ message: 'Google token is required.' });
@@ -137,17 +144,22 @@ router.post('/google', async (req, res) => {
         let user = await User.findOne({ email });
         
         if (user) {
+            // Update role if a different one is requested during registration
+            if (requestedRole && user.role !== requestedRole) {
+                user.role = requestedRole;
+            }
             // If user exists, but doesn't have a googleId, let's link them
             if (!user.googleId) {
                 user.googleId = sub;
-                await user.save();
             }
+            await user.save();
 
             // Return jsonwebtoken
             const jwtPayload = {
                 user: {
                     id: user.id,
-                    role: user.role
+                    role: user.role,
+                    business: user.business
                 }
             };
 
@@ -209,7 +221,8 @@ router.post('/google/complete', async (req, res) => {
     const jwtPayload = {
       user: {
         id: user.id,
-        role: user.role
+        role: user.role,
+        business: user.business
       }
     };
 

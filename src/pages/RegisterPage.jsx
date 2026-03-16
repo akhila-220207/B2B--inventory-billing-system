@@ -39,7 +39,7 @@ export default function RegisterPage() {
       const res = await fetch(`${API_URL}/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token, role: formData.role }),
       });
       const data = await res.json();
       
@@ -110,7 +110,11 @@ export default function RegisterPage() {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      if (!res.ok) { setServerError(data.message || "Registration failed."); setLoading(false); return; }
+      if (!res.ok) { 
+        setServerError(data.details || data.message || "Registration failed."); 
+        setLoading(false); 
+        return; 
+      }
       handleSuccessRedirect(data);
     } catch {
       setServerError("Cannot connect to server. Make sure the backend is running.");

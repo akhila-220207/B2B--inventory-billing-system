@@ -1,7 +1,7 @@
 //this is inventory page
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const NAV_ITEMS = [
+const API_BASE = "http://localhost:5000/api";const NAV_ITEMS = [
   { label: "Home", icon: "⌂" },
   { label: "Products", icon: "▦" },
   { label: "Inventory", icon: "▤", active: true },
@@ -87,17 +87,10 @@ const STATUS_CONFIG = {
   "Out of Stock": { bg: "#fef2f2", color: "#b91c1c", border: "#fecaca", icon: "✕" },
 };
 
-const CATEGORY_OPTIONS = ["All", "Grains", "Beverages", "Personal Care", "Dairy", "Spices", "Snacks"];
-
-const INITIAL_INVENTORY = [
-  { id: 1, product: "Rice Bags",       category: "Grains",        stock: 50,  threshold: 10, unit: "Bags",    price: 850,  lastUpdated: "2025-06-06" },
-  { id: 2, product: "Oil Bottles",     category: "Beverages",     stock: 8,   threshold: 15, unit: "Bottles", price: 120,  lastUpdated: "2025-06-05" },
-  { id: 3, product: "Soap",            category: "Personal Care",  stock: 200, threshold: 20, unit: "Pcs",     price: 35,   lastUpdated: "2025-06-04" },
-  { id: 4, product: "Wheat Flour",     category: "Grains",        stock: 0,   threshold: 10, unit: "Bags",    price: 480,  lastUpdated: "2025-06-03" },
-  { id: 5, product: "Milk Packets",    category: "Dairy",         stock: 12,  threshold: 20, unit: "Packets", price: 28,   lastUpdated: "2025-06-06" },
-  { id: 6, product: "Spice Packs",     category: "Spices",        stock: 75,  threshold: 10, unit: "Packs",   price: 65,   lastUpdated: "2025-06-02" },
-  { id: 7, product: "Biscuit Boxes",   category: "Snacks",        stock: 5,   threshold: 15, unit: "Boxes",   price: 55,   lastUpdated: "2025-06-01" },
-  { id: 8, product: "Shampoo Bottles", category: "Personal Care",  stock: 90,  threshold: 10, unit: "Bottles", price: 145,  lastUpdated: "2025-06-05" },
+const CATEGORY_OPTIONS = [
+  "All", "Groceries", "Household", "Electronics", "Beverages", "Packaging",
+  "Cleaning", "Office Supplies", "Personal Care",
+  "Grains", "Dairy", "Spices", "Snacks", "Other"
 ];
 
 function StatCard({ label, value, icon, bg, color, border }) {
@@ -127,7 +120,8 @@ const inputStyle = {
 };
 
 export default function InventoryPage() {
-  const [inventory, setInventory] = useState(INITIAL_INVENTORY);
+  const [inventory, setInventory] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -138,7 +132,39 @@ export default function InventoryPage() {
   const [deleteId, setDeleteId] = useState(null);
   const [restockId, setRestockId] = useState(null);
   const [restockQty, setRestockQty] = useState("");
-  const [newItem, setNewItem] = useState({ product: "", category: "Grains", stock: "", threshold: "10", unit: "Pcs", price: "" });
+  const [newItem, setNewItem] = useState({ product: "", category: "Groceries", stock: "", threshold: "10", unit: "Pcs", price: "" });
+
+  // Fetch real products from backend
+  useEffect(() => {
+    const fetchInventory = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/products`);
+        if (res.ok) {
+          const data = await res.json();
+          const business = localStorage.getItem("userBusiness") || localStorage.getItem("userName");
+          const myProducts = data.products.filter(p => p.supplier === business);
+          // Map backend Product to inventory row format
+          const mapped = myProducts.map(p => ({
+            id: p._id,
+            product: p.name,
+            category: p.category,
+            stock: p.stockQty ?? 0,
+            threshold: 10,
+            unit: p.unit || "Pcs",
+            price: p.price,
+            lastUpdated: p.updatedAt ? p.updatedAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+          }));
+          setInventory(mapped);
+        }
+      } catch (err) {
+        console.error("Inventory fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInventory();
+  }, []);
 
   const withStatus = inventory.map(i => ({ ...i, status: getStockStatus(i.stock, i.threshold) }));
 
@@ -170,17 +196,59 @@ export default function InventoryPage() {
   const lowCount = withStatus.filter(i => i.status === "Low Stock").length;
   const outCount = withStatus.filter(i => i.status === "Out of Stock").length;
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newItem.product) return;
-    setInventory(prev => [...prev, {
-      ...newItem, id: Date.now(),
-      stock: Number(newItem.stock) || 0,
-      threshold: Number(newItem.threshold) || 10,
-      price: Number(newItem.price) || 0,
-      lastUpdated: new Date().toISOString().slice(0, 10),
-    }]);
-    setNewItem({ product: "", category: "Grains", stock: "", threshold: "10", unit: "Pcs", price: "" });
-    setAddModal(false);
+    try {
+      const token = localStorage.getItem("token");
+      const stockQty = Number(newItem.stock) || 0;
+      const payload = {
+        name: newItem.product,
+        price: Number(newItem.price) || 0,
+        stockQty,
+        stock: stockQty > 15 ? "Available" : stockQty > 0 ? "Low Stock" : "Out of Stock",
+        category: newItem.category || "Other",
+        unit: newItem.unit || "Pcs",
+        minOrderQty: 1,
+      };
+      const res = await fetch(`${API_BASE}/products`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setInventory(prev => [...prev, {
+          id: saved._id,
+          product: saved.name,
+          category: saved.category,
+          stock: saved.stockQty ?? 0,
+          threshold: 10,
+          unit: saved.unit || "Pcs",
+          price: saved.price,
+          lastUpdated: new Date().toISOString().slice(0, 10),
+        }]);
+        setNewItem({ product: "", category: "Groceries", stock: "", threshold: "10", unit: "Pcs", price: "" });
+        setAddModal(false);
+      }
+    } catch (err) {
+      console.error("Add inventory item error:", err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/products/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setInventory(prev => prev.filter(i => i.id !== id));
+      }
+    } catch (err) {
+      console.error("Delete inventory item error:", err);
+    }
+    setDeleteId(null);
   };
 
   const handleEdit = () => {
@@ -275,6 +343,10 @@ export default function InventoryPage() {
             boxShadow: "0 4px 14px rgba(37,99,235,0.35)",
           }}>+ Add Product</button>
         </div>
+
+        {loading && (
+          <div style={{ textAlign: "center", padding: 40, color: "#64748b", fontWeight: 600 }}>Loading inventory...</div>
+        )}
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14, marginBottom: 28 }}>
@@ -571,7 +643,7 @@ export default function InventoryPage() {
               <strong>{inventory.find(i => i.id === deleteId)?.product}</strong> will be permanently removed from inventory.
             </p>
             <div style={{ display: "flex", gap: 10 }}>
-              <ActionBtn onClick={() => { setInventory(p => p.filter(i => i.id !== deleteId)); setDeleteId(null); }}
+              <ActionBtn onClick={() => handleDelete(deleteId)}
                 bg="linear-gradient(135deg,#ef4444,#b91c1c)" color="#fff">Delete</ActionBtn>
               <ActionBtn onClick={() => setDeleteId(null)} bg="#f9fafb" color="#374151" border="2px solid #e5e7eb">Cancel</ActionBtn>
             </div>

@@ -472,4 +472,62 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// PUT /api/products/:id — Update a product (Supplier only, must own it)
+router.put('/:id', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'supplier') {
+      return res.status(403).json({ message: 'Only suppliers can update products' });
+    }
+
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    // Ensure supplier owns this product
+    if (String(product.supplierId) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'You can only update your own products' });
+    }
+
+    const { name, description, price, unit, category, stock, stockQty, image, minOrderQty } = req.body;
+
+    if (name !== undefined) product.name = name;
+    if (description !== undefined) product.description = description;
+    if (price !== undefined) product.price = price;
+    if (unit !== undefined) product.unit = unit;
+    if (category !== undefined) product.category = category;
+    if (stock !== undefined) product.stock = stock;
+    if (stockQty !== undefined) product.stockQty = stockQty;
+    if (image !== undefined) product.image = image;
+    if (minOrderQty !== undefined) product.minOrderQty = minOrderQty;
+
+    const updated = await product.save();
+    res.json(updated);
+  } catch (err) {
+    console.error('Product update error:', err.message);
+    res.status(500).json({ message: err.message || 'Server Error' });
+  }
+});
+
+// DELETE /api/products/:id — Delete a product (Supplier only, must own it)
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'supplier') {
+      return res.status(403).json({ message: 'Only suppliers can delete products' });
+    }
+
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    // Ensure supplier owns this product
+    if (String(product.supplierId) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'You can only delete your own products' });
+    }
+
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Product deleted successfully' });
+  } catch (err) {
+    console.error('Product delete error:', err.message);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 module.exports = router;

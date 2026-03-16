@@ -17,9 +17,17 @@ const INITIAL_PRODUCTS = [
   { _id: "6", name: "Milk Packets",    price: 28,   stock: 12,  category: "Dairy",        status: "Active" },
 ];
 
-const CATEGORIES = ["Grains", "Beverages", "Personal Care", "Dairy", "Spices", "Snacks", "Other"];
+// Categories must match the backend Product.js enum exactly
+const CATEGORIES = [
+  "Groceries", "Household", "Electronics", "Beverages", "Packaging",
+  "Cleaning", "Office Supplies", "Personal Care",
+  "Grains", "Dairy", "Spices", "Snacks", "Other"
+];
 
-const EMPTY_FORM = { name: "", price: "", stock: "", category: "Grains", status: "Active", image: "" };
+const EMPTY_FORM = {
+  name: "", price: "", stock: "", category: "Groceries",
+  status: "Active", image: "", description: "", unit: "piece", minOrderQty: "1"
+};
 
 // ── Helpers ───────────────────────────────────────────────────
 function getStockBadge(stock) {
@@ -144,22 +152,42 @@ export default function ProductsPage() {
 
     try {
       const token = localStorage.getItem("token");
-      if (editingId) {
-        // Mock update for now (backend only handles POST in this demo)
-        setProducts(prev => prev.map(p => p._id === editingId
-          ? { ...p, ...form, price: Number(form.price), stockQty: Number(form.stock) }
-          : p));
-        showToast("Product updated successfully");
-      } else {
-        const payload = {
-          name: form.name,
-          price: Number(form.price),
-          stockQty: Number(form.stock),
-          stock: Number(form.stock) > 0 ? "Available" : "Out of Stock",
-          category: form.category || "Other",
-          image: form.image
-        };
+      if (!token) { showToast("Please log in again", "error"); return; }
 
+      const stockQty = Number(form.stock);
+      const payload = {
+        name: form.name.trim(),
+        description: form.description || "",
+        price: Number(form.price),
+        stockQty,
+        stock: stockQty > 15 ? "Available" : stockQty > 0 ? "Low Stock" : "Out of Stock",
+        category: form.category || "Other",
+        unit: form.unit || "piece",
+        minOrderQty: Number(form.minOrderQty) || 1,
+        image: form.image || ""
+      };
+
+      if (editingId) {
+        // Real PUT call for editing
+        const res = await fetch(`${API_BASE}/products/${editingId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setProducts(prev => prev.map(p => p._id === editingId ? updated : p));
+          showToast("Product updated successfully");
+        } else {
+          const errData = await res.json();
+          showToast(errData.message || "Failed to update product", "error");
+          return;
+        }
+      } else {
+        // Real POST call for adding
         const res = await fetch(`${API_BASE}/products`, {
            method: "POST",
            headers: {
@@ -172,7 +200,7 @@ export default function ProductsPage() {
         if (res.ok) {
            const saved = await res.json();
            setProducts(prev => [...prev, saved]);
-           showToast("Product added successfully");
+           showToast("Product added successfully! It is now live in the marketplace.");
         } else {
            const errData = await res.json();
            showToast(errData.message || "Failed to add product", "error");
@@ -189,16 +217,40 @@ export default function ProductsPage() {
 
   const handleEdit = (id) => {
     const p = products.find(p => p._id === id);
-    setForm({ name: p.name, price: p.price, stock: p.stockQty || p.stock, category: p.category, status: p.status || "Active", image: p.image || "" });
+    setForm({
+      name: p.name,
+      price: p.price,
+      stock: p.stockQty ?? p.stock ?? 0,
+      category: p.category,
+      status: p.status || "Active",
+      image: p.image || "",
+      description: p.description || "",
+      unit: p.unit || "piece",
+      minOrderQty: p.minOrderQty || 1
+    });
     setEditingId(id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDelete = (id) => {
-    setProducts(prev => prev.filter(p => p._id !== id));
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/products/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setProducts(prev => prev.filter(p => p._id !== id));
+        showToast("Product deleted successfully");
+      } else {
+        const errData = await res.json();
+        showToast(errData.message || "Failed to delete product", "error");
+      }
+    } catch (err) {
+      showToast("Network error. Could not delete product.", "error");
+    }
     setDeleteId(null);
-    showToast("Product deleted");
   };
 
   const cancelForm = () => {
@@ -329,10 +381,38 @@ export default function ProductsPage() {
               </Field>
             </div>
             {/* Row 2 */}
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
               <Field label="Category" icon={FaBox}>
                 <FSelect value={form.category} onChange={set("category")} options={CATEGORIES} />
               </Field>
+              <Field label="Unit (e.g. bag, box)" icon={FaTag}>
+                <FInput placeholder="e.g. bag" value={form.unit} onChange={set("unit")} />
+              </Field>
+              <Field label="Min. Order Qty" icon={FaLayerGroup}>
+                <FInput type="number" placeholder="e.g. 1" value={form.minOrderQty} onChange={set("minOrderQty")} />
+              </Field>
+            </div>
+            {/* Row 3 */}
+            <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
+              <Field label="Description" icon={FaTag}>
+                <textarea
+                  placeholder="Brief description of your product..."
+                  value={form.description}
+                  onChange={set("description")}
+                  rows={2}
+                  style={{
+                    width: "100%", boxSizing: "border-box",
+                    padding: "10px 13px", borderRadius: 9,
+                    border: "2px solid #e5e7eb",
+                    background: "#f9fafb",
+                    fontSize: 13, color: "#111827", outline: "none",
+                    fontFamily: "inherit", resize: "vertical",
+                  }}
+                />
+              </Field>
+            </div>
+            {/* Row 4 */}
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               <Field label="Product Image" icon={FaImage}>
                 <input type="file" accept="image/*" onChange={handleImageUpload} style={{
                     width: "100%", padding: "7px 10px", borderRadius: 9,

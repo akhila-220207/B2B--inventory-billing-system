@@ -1,4 +1,6 @@
 require('dotenv').config();
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -32,11 +34,11 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGODB_URI, { 
     // Recommended options for reliability
-    serverSelectionTimeoutMS: 5000,
-    family: 4 
+    serverSelectionTimeoutMS: 5000
 })
 .then(() => {
     console.log('✅ MongoDB Atlas connected successfully. Database is ready!');
+    console.log('Connection readyState:', mongoose.connection.readyState);
     app.listen(PORT, () => {
         console.log(`🚀 Fresh Backend Server running on http://localhost:${PORT}`);
     });

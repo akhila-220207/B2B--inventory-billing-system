@@ -22,7 +22,11 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Groceries', 'Household', 'Electronics', 'Beverages', 'Packaging', 'Cleaning', 'Office Supplies', 'Personal Care']
+    enum: [
+      'Groceries', 'Household', 'Electronics', 'Beverages', 'Packaging',
+      'Cleaning', 'Office Supplies', 'Personal Care',
+      'Grains', 'Dairy', 'Spices', 'Snacks', 'Other'
+    ]
   },
   supplier: {
     type: String,
