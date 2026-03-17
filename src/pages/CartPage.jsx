@@ -13,6 +13,7 @@ const mockCartItems = [
   { productId: "2", name: "Heavy Duty Packaging Film", supplier: "PackPro", price: 1850, quantity: 25, unit: "roll", image: "https://via.placeholder.com/80x80/dcfce7/16a34a?text=📦", minOrderQty: 10 },
 ];
 
+<<<<<<< HEAD
 // ─── UPI Apps Config ──────────────────────────────────────────────────────────
 const UPI_APPS = [
   { id: "phonepe",  label: "PhonePe",   icon: SiPhonepe,   color: "#5f259f", bg: "#f3e8ff", upiId: "merchant@ybl" },
@@ -22,6 +23,15 @@ const UPI_APPS = [
   { id: "netbank",  label: "Net Banking", icon: FaUniversity,color: "#0f766e", bg: "#ccfbf1", upiId: null },
   { id: "qr",       label: "Scan QR",    icon: FaQrcode,    color: "#7c3aed", bg: "#ede9fe", upiId: null },
 ];
+=======
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+    0
+  );
+  const gst = Math.round(subtotal * 0.05); 
+  const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
+  const total = subtotal + gst - discount;
+>>>>>>> buyer-dashboard
 
 // ─── QR Code SVG (mock) ───────────────────────────────────────────────────────
 const QRCode = ({ amount }) => (
