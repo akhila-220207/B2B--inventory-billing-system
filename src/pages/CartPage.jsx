@@ -20,7 +20,7 @@ export default function CartPage() {
     (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
     0
   );
-  const gst = Math.round(subtotal * 0.05); // Standard 5% GST for bulk
+  const gst = Math.round(subtotal * 0.05); 
   const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
   const total = subtotal + gst - discount;
 
