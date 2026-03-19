@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const API_BASE = "http://127.0.0.1:5000/api";
 
 const NAV_ITEMS = [
   { label: "Home", icon: "⌂" },
@@ -115,7 +117,8 @@ function StatCard({ label, value, icon, bg, color, border }) {
 }
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState(INITIAL_ORDERS);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortBy, setSortBy] = useState("date");
@@ -124,6 +127,40 @@ export default function OrdersPage() {
   const [deleteId, setDeleteId] = useState(null);
   const [addModal, setAddModal] = useState(false);
   const [newOrder, setNewOrder] = useState({ buyer: "", products: "", qty: "", total: "", address: "", phone: "" });
+
+  // Fetch orders from API
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE}/orders`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Transform API data to format compatible with existing UI
+          const transformedOrders = data.map((order, idx) => ({
+            id: `#${order._id.slice(-4).toUpperCase()}`,
+            _id: order._id,
+            buyer: order.buyerName || order.buyer || "Unknown",
+            products: order.items?.map(i => i.name).join(", ") || "N/A",
+            qty: order.items?.reduce((sum, i) => sum + (i.quantity || 0), 0) || 0,
+            total: order.totalAmount || 0,
+            status: order.status || "Processing",
+            date: new Date(order.createdAt).toLocaleDateString(),
+            address: order.shippingAddress || "N/A",
+            phone: order.phone || "",
+          }));
+          setOrders(transformedOrders);
+        }
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, []);
 
   const advanceStatus = (id) => {
     setOrders(prev => prev.map(o => {
