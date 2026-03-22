@@ -1,11 +1,14 @@
 //this is home page  of supplier dashboard
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaShoppingCart, FaBox, FaUsers, FaRupeeSign,
   FaArrowUp, FaArrowDown, FaExclamationTriangle,
   FaCheckCircle, FaClock, FaTruck, FaTimes,
   FaChartLine, FaBell, FaEye
 } from "react-icons/fa";
+
+const API_BASE = "http://127.0.0.1:5000/api";
 
 // ── Stat Card ────────────────────────────────────────────────
 function StatCard({ title, value, icon: Icon, gradient, change, positive }) {
@@ -91,43 +94,165 @@ function AlertItem({ icon: Icon, message, sub, color, bg, border }) {
 // ── Main Page ────────────────────────────────────────────────
 export default function SupplierHomePage() {
   const [activeOrderTab, setActiveOrderTab] = useState("All");
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    totalOrders: 0,
+    revenue: 0,
+    activeBuyers: 0,
+    alerts: [],
+    topProducts: [],
+  });
+  const navigate = useNavigate();
   const supplierName = localStorage.getItem("userBusiness") || localStorage.getItem("userName") || "Supplier";
   const today = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
-  const stats = [
-    { title: "Total Products",  value: "24",        icon: FaBox,         gradient: "linear-gradient(135deg,#3b82f6,#1d4ed8)", change: "+12%", positive: true  },
-    { title: "Total Orders",    value: "156",        icon: FaShoppingCart,gradient: "linear-gradient(135deg,#10b981,#047857)", change: "+8%",  positive: true  },
-    { title: "Revenue",         value: "₹2,45,000",  icon: FaRupeeSign,   gradient: "linear-gradient(135deg,#8b5cf6,#6d28d9)", change: "+15%", positive: true  },
-    { title: "Active Buyers",   value: "89",         icon: FaUsers,       gradient: "linear-gradient(135deg,#f97316,#c2410c)", change: "-2%",  positive: false },
+  // Fetch all data dynamically
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        
+        // Fetch orders
+        const ordersRes = await fetch(`${API_BASE}/orders`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const ordersData = ordersRes.ok ? await ordersRes.json() : [];
+        
+        // Fetch products
+        const productsRes = await fetch(`${API_BASE}/products`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const productsData = productsRes.ok ? await productsRes.json() : [];
+        
+        // Sort orders by date (newest first)
+        const sortedOrders = ordersData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setRecentOrders(sortedOrders);
+        
+        // Calculate stats
+        const totalOrders = ordersData.length;
+        const totalRevenue = ordersData.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        const totalProducts = productsData.length;
+        
+        // Calculate active buyers (unique buyers)
+        const uniqueBuyers = new Set(ordersData.map(o => o.buyerId || o.buyer)).size;
+        
+        // Calculate top selling products
+        const productSalesMap = {};
+        ordersData.forEach(order => {
+          order.items?.forEach(item => {
+            if (!productSalesMap[item._id]) {
+              productSalesMap[item._id] = {
+                name: item.name,
+                sold: 0,
+                revenue: 0,
+              };
+            }
+            productSalesMap[item._id].sold += item.quantity || 0;
+            productSalesMap[item._id].revenue += (item.price * (item.quantity || 0)) || 0;
+          });
+        });
+        
+        const topSellingProducts = Object.values(productSalesMap)
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 5)
+          .map(p => ({
+            name: p.name,
+            sold: p.sold,
+            revenue: `₹${p.revenue.toLocaleString("en-IN")}`,
+            pct: Math.min(100, Math.round((p.sold / 500) * 100))
+          }));
+        
+        // Generate dynamic alerts
+        const dynamicAlerts = [];
+        
+        // Alert for pending orders
+        const pendingOrders = ordersData.filter(o => o.status === 'Processing').length;
+        if (pendingOrders > 0) {
+          dynamicAlerts.push({
+            icon: FaTruck,
+            message: `${pendingOrders} pending orders`,
+            sub: `${pendingOrders} order${pendingOrders > 1 ? 's' : ''} awaiting processing`,
+            color: "#1d4ed8",
+            bg: "#eff6ff",
+            border: "#bfdbfe"
+          });
+        }
+        
+        // Alert for recent orders
+        const recentOrdersCount = ordersData.filter(o => {
+          const orderDate = new Date(o.createdAt);
+          const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          return orderDate > oneDayAgo;
+        }).length;
+        
+        if (recentOrdersCount > 0) {
+          dynamicAlerts.push({
+            icon: FaBell,
+            message: `${recentOrdersCount} new orders today`,
+            sub: `Total revenue: ₹${ordersData.filter(o => {
+              const orderDate = new Date(o.createdAt);
+              const todayStart = new Date();
+              todayStart.setHours(0, 0, 0, 0);
+              return orderDate > todayStart;
+            }).reduce((sum, o) => sum + (o.totalAmount || 0), 0).toLocaleString("en-IN")}`,
+            color: "#1d4ed8",
+            bg: "#eff6ff",
+            border: "#bfdbfe"
+          });
+        }
+        
+        // Alert for low stock/no stock products
+        const lowStockProducts = productsData.filter(p => p.stock <= 10).slice(0, 1);
+        if (lowStockProducts.length > 0) {
+          dynamicAlerts.push({
+            icon: FaExclamationTriangle,
+            message: `Low stock: ${lowStockProducts[0].name}`,
+            sub: `Only ${lowStockProducts[0].stock} units remaining`,
+            color: "#b45309",
+            bg: "#fffbeb",
+            border: "#fde68a"
+          });
+        }
+        
+        setStats({
+          totalProducts,
+          totalOrders,
+          revenue: totalRevenue,
+          activeBuyers: uniqueBuyers,
+          alerts: dynamicAlerts,
+          topProducts: topSellingProducts,
+        });
+        
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllData();
+  }, []);
+
+  const statCards = [
+    { title: "Total Products",  value: stats.totalProducts.toString(),        icon: FaBox,         gradient: "linear-gradient(135deg,#3b82f6,#1d4ed8)", change: "+12%", positive: true  },
+    { title: "Total Orders",    value: stats.totalOrders.toString(),        icon: FaShoppingCart,gradient: "linear-gradient(135deg,#10b981,#047857)", change: "+8%",  positive: true  },
+    { title: "Revenue",         value: `₹${stats.revenue.toLocaleString("en-IN")}`,  icon: FaRupeeSign,   gradient: "linear-gradient(135deg,#8b5cf6,#6d28d9)", change: "+15%", positive: true  },
+    { title: "Active Buyers",   value: stats.activeBuyers.toString(),         icon: FaUsers,       gradient: "linear-gradient(135deg,#f97316,#c2410c)", change: "-2%",  positive: false },
   ];
 
-  const recentOrders = [
-    { id: "#2281", buyer: "ABC Corp",        product: "Rice Bags",     amount: "₹12,000", status: "Pending",    date: "2025-06-10", qty: 20 },
-    { id: "#2280", buyer: "XYZ Ltd",         product: "Oil Bottles",   amount: "₹8,500",  status: "Completed",  date: "2025-06-09", qty: 15 },
-    { id: "#2279", buyer: "DEF Industries",  product: "Wheat Flour",   amount: "₹15,200", status: "Processing", date: "2025-06-08", qty: 30 },
-    { id: "#2278", buyer: "Star Traders",    product: "Sugar Bags",    amount: "₹6,400",  status: "Completed",  date: "2025-06-07", qty: 10 },
-    { id: "#2277", buyer: "Fresh Foods Co",  product: "Spice Packs",   amount: "₹3,900",  status: "Cancelled",  date: "2025-06-06", qty: 8  },
-    { id: "#2276", buyer: "Metro Supplies",  product: "Soap Cartons",  amount: "₹5,100",  status: "Processing", date: "2025-06-05", qty: 12 },
-  ];
+  const alerts = !stats.alerts || stats.alerts.length === 0 ? [
+    { icon: FaCheckCircle, message: "All systems operational",    sub: "Your business is running smoothly",       color: "#10b981", bg: "#f0fdf4", border: "#bbf7d0" },
+  ] : stats.alerts;
 
-  const alerts = [
-    { icon: FaExclamationTriangle, message: "Low stock: Rice Bags",    sub: "Only 8 units remaining",       color: "#b45309", bg: "#fffbeb", border: "#fde68a" },
-    { icon: FaBell,                message: "New order from ABC Corp", sub: "₹12,000 · Pending approval",  color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe" },
-    { icon: FaExclamationTriangle, message: "Out of stock: Wheat Flour", sub: "Restock needed immediately", color: "#b91c1c", bg: "#fef2f2", border: "#fecaca" },
-  ];
+  const topProducts = stats.topProducts && stats.topProducts.length > 0 ? stats.topProducts : [];
 
-  const topProducts = [
-    { name: "Rice Bags",    sold: 320, revenue: "₹72,000", pct: 88 },
-    { name: "Oil Bottles",  sold: 215, revenue: "₹43,000", pct: 62 },
-    { name: "Wheat Flour",  sold: 180, revenue: "₹36,000", pct: 52 },
-    { name: "Spice Packs",  sold: 140, revenue: "₹28,000", pct: 41 },
-    { name: "Soap Cartons", sold: 95,  revenue: "₹19,000", pct: 27 },
-  ];
-
-  const orderTabs = ["All", "Pending", "Processing", "Completed", "Cancelled"];
+  const orderTabs = ["All", "Processing", "Shipped", "Delivered", "Cancelled"];
+  
+  // Filter orders based on active tab
   const visibleOrders = activeOrderTab === "All"
-    ? recentOrders
-    : recentOrders.filter(o => o.status === activeOrderTab);
+    ? recentOrders.slice(0, 10)
+    : recentOrders.filter(o => o.status === activeOrderTab).slice(0, 10);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 28, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
@@ -161,8 +286,13 @@ export default function SupplierHomePage() {
 
         <div style={{ display: "flex", gap: 12, position: "relative" }}>
           {[
-            { label: "Today's Orders", value: "12" },
-            { label: "Pending Actions", value: "3" },
+            { label: "Today's Orders", value: recentOrders.filter(o => {
+              const orderDate = new Date(o.createdAt);
+              const todayStart = new Date();
+              todayStart.setHours(0, 0, 0, 0);
+              return orderDate > todayStart;
+            }).length.toString() },
+            { label: "Pending Actions", value: recentOrders.filter(o => o.status === 'Processing').length.toString() },
           ].map(b => (
             <div key={b.label} style={{
               background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)",
@@ -177,7 +307,7 @@ export default function SupplierHomePage() {
 
       {/* ── Stat Cards ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 18 }}>
-        {stats.map((s, i) => <StatCard key={i} {...s} />)}
+        {statCards.map((s, i) => <StatCard key={i} {...s} />)}
       </div>
 
       {/* ── Middle Row: Alerts + Top Products ── */}
@@ -195,9 +325,9 @@ export default function SupplierHomePage() {
             <FaBell color="#fff" size={14} />
             <span style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>Alerts & Notifications</span>
             <span style={{
-              marginLeft: "auto", background: "#ef4444", color: "#fff",
+              marginLeft: "auto", background: stats.alerts && stats.alerts.length > 0 ? "#ef4444" : "#10b981", color: "#fff",
               borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: 800,
-            }}>{alerts.length}</span>
+            }}>{stats.alerts ? stats.alerts.length : 0}</span>
           </div>
           <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
             {alerts.map((a, i) => <AlertItem key={i} {...a} />)}
@@ -217,35 +347,41 @@ export default function SupplierHomePage() {
             <span style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>Top Selling Products</span>
           </div>
           <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
-            {topProducts.map((p, i) => (
-              <div key={i}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{
-                      width: 22, height: 22, borderRadius: 6,
-                      background: i === 0 ? "linear-gradient(135deg,#f59e0b,#d97706)" : "#f1f5f9",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 10, fontWeight: 800, color: i === 0 ? "#fff" : "#64748b",
-                    }}>{i + 1}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{p.name}</span>
+            {topProducts && topProducts.length > 0 ? (
+              topProducts.map((p, i) => (
+                <div key={i}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{
+                        width: 22, height: 22, borderRadius: 6,
+                        background: i === 0 ? "linear-gradient(135deg,#f59e0b,#d97706)" : "#f1f5f9",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 10, fontWeight: 800, color: i === 0 ? "#fff" : "#64748b",
+                      }}>{i + 1}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{p.name}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 16 }}>
+                      <span style={{ fontSize: 12, color: "#64748b" }}>{p.sold} sold</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#15803d" }}>{p.revenue}</span>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", gap: 16 }}>
-                    <span style={{ fontSize: 12, color: "#64748b" }}>{p.sold} sold</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#15803d" }}>{p.revenue}</span>
+                  <div style={{ background: "#f1f5f9", borderRadius: 99, height: 6, overflow: "hidden" }}>
+                    <div style={{
+                      width: `${p.pct}%`, height: "100%", borderRadius: 99,
+                      background: i === 0
+                        ? "linear-gradient(90deg,#3b82f6,#1d4ed8)"
+                        : i === 1 ? "linear-gradient(90deg,#10b981,#047857)"
+                        : "linear-gradient(90deg,#8b5cf6,#6d28d9)",
+                      transition: "width 0.8s ease",
+                    }} />
                   </div>
                 </div>
-                <div style={{ background: "#f1f5f9", borderRadius: 99, height: 6, overflow: "hidden" }}>
-                  <div style={{
-                    width: `${p.pct}%`, height: "100%", borderRadius: 99,
-                    background: i === 0
-                      ? "linear-gradient(90deg,#3b82f6,#1d4ed8)"
-                      : i === 1 ? "linear-gradient(90deg,#10b981,#047857)"
-                      : "linear-gradient(90deg,#8b5cf6,#6d28d9)",
-                    transition: "width 0.8s ease",
-                  }} />
-                </div>
+              ))
+            ) : (
+              <div style={{ textAlign: "center", padding: "20px 0", color: "#94a3b8", fontSize: 13 }}>
+                No products sold yet.
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
@@ -296,7 +432,7 @@ export default function SupplierHomePage() {
                   No orders found.
                 </td></tr>
               ) : visibleOrders.map((order, i) => (
-                <tr key={order.id} style={{
+                <tr key={order._id} style={{
                   borderBottom: "1px solid #f1f5f9",
                   background: i % 2 === 0 ? "#fff" : "#fafbff",
                   transition: "background 0.15s",
@@ -304,20 +440,22 @@ export default function SupplierHomePage() {
                   onMouseEnter={e => e.currentTarget.style.background = "#eff6ff"}
                   onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? "#fff" : "#fafbff"}
                 >
-                  <td style={{ padding: "12px 16px", fontWeight: 700, color: "#1d4ed8", fontSize: 13 }}>{order.id}</td>
-                  <td style={{ padding: "12px 16px", fontWeight: 600, color: "#0f172a", fontSize: 13 }}>{order.buyer}</td>
-                  <td style={{ padding: "12px 16px", color: "#475569", fontSize: 13 }}>{order.product}</td>
-                  <td style={{ padding: "12px 16px", color: "#64748b", fontSize: 13 }}>{order.qty}</td>
-                  <td style={{ padding: "12px 16px", fontWeight: 700, color: "#15803d", fontSize: 13 }}>{order.amount}</td>
+                  <td style={{ padding: "12px 16px", fontWeight: 700, color: "#1d4ed8", fontSize: 13 }}>#{order._id.slice(-8).toUpperCase()}</td>
+                  <td style={{ padding: "12px 16px", fontWeight: 600, color: "#0f172a", fontSize: 13 }}>{order.buyerName || "N/A"}</td>
+                  <td style={{ padding: "12px 16px", color: "#475569", fontSize: 13 }}>{order.items?.length > 0 ? order.items[0]?.name : "N/A"}</td>
+                  <td style={{ padding: "12px 16px", color: "#64748b", fontSize: 13 }}>{order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}</td>
+                  <td style={{ padding: "12px 16px", fontWeight: 700, color: "#15803d", fontSize: 13 }}>₹{order.totalAmount?.toLocaleString("en-IN") || 0}</td>
                   <td style={{ padding: "12px 16px" }}><Badge status={order.status} /></td>
-                  <td style={{ padding: "12px 16px", color: "#94a3b8", fontSize: 12 }}>{order.date}</td>
+                  <td style={{ padding: "12px 16px", color: "#94a3b8", fontSize: 12 }}>{new Date(order.createdAt).toLocaleDateString()}</td>
                   <td style={{ padding: "12px 16px" }}>
-                    <button style={{
-                      padding: "5px 12px", borderRadius: 7,
-                      border: "1.5px solid #bfdbfe", background: "#eff6ff",
-                      color: "#1d4ed8", fontSize: 11, fontWeight: 700,
-                      cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
-                    }}>
+                    <button 
+                      onClick={() => navigate(`/order-tracking/${order._id}`)}
+                      style={{
+                        padding: "5px 12px", borderRadius: 7,
+                        border: "1.5px solid #bfdbfe", background: "#eff6ff",
+                        color: "#1d4ed8", fontSize: 11, fontWeight: 700,
+                        cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
+                      }}>
                       <FaEye size={10} /> View
                     </button>
                   </td>
@@ -335,11 +473,13 @@ export default function SupplierHomePage() {
           <span style={{ fontSize: 12, color: "#94a3b8" }}>
             Showing {visibleOrders.length} of {recentOrders.length} recent orders
           </span>
-          <button style={{
-            padding: "7px 16px", borderRadius: 8, border: "none",
-            background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
-            color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
-          }}>
+          <button 
+            onClick={() => navigate("/supplier-dashboard/orders")}
+            style={{
+              padding: "7px 16px", borderRadius: 8, border: "none",
+              background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+              color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
+            }}>
             View All Orders →
           </button>
         </div>
