@@ -205,13 +205,28 @@ export default function CheckoutPage() {
                    </p>
                 )}
 
-                <button
-                  onClick={handleConfirmOrder}
-                  disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white py-4 rounded-xl font-black text-base shadow-lg shadow-blue-100 transition-all active:scale-95"
-                >
-                  {loading ? "Processing Order..." : "Place Bulk Order"}
-                </button>
+                
+                
+              <button
+  onClick={() => {
+    if (!address.trim()) {
+      alert("⚠️ Please enter delivery address before proceeding to payment");
+      return;
+    }
+
+    navigate("/payment", {
+      state: {
+        items: cartItems,
+        totalAmount: total,
+        shippingAddress: `${address}${pincode ? ` - ${pincode}` : ''}`
+      }
+    });
+  }}
+  disabled={loading}
+  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white py-4 rounded-xl font-black text-base shadow-lg shadow-blue-100 transition-all active:scale-95"
+>
+  Proceed to Payment
+</button>
                 
                 <p className="text-[10px] text-gray-400 text-center mt-4">
                   By clicking, you authorize the issuance of a digital purchase order.

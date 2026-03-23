@@ -23,7 +23,7 @@ const authMiddleware = (req, res, next) => {
 // POST /api/orders — Create a new order
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { items, totalAmount, shippingAddress } = req.body;
+    const { items, totalAmount, shippingAddress, paymentMethod, paymentStatus } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'No items in order' });
@@ -54,8 +54,10 @@ router.post('/', authMiddleware, async (req, res) => {
       userId: req.user.id,
       items,
       totalAmount,
-      shippingAddress
-    });
+      shippingAddress,
+      paymentMethod,
+      paymentStatus
+});
 
     const order = await newOrder.save();
 

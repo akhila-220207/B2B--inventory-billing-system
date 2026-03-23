@@ -15,6 +15,7 @@ import SettingsPage from "./pages/SettingsPage";
 import OrderTrackingPage from "./pages/OrderTrackingPage";
 import SupplierProfilePage from "./pages/SupplierProfilePage";
 import ProductDetailsPage from "./pages/ProductDetailsPage";
+import PaymentPage from "./pages/Paymentpage";
 import SupplierDashboard from "./pages/supplier/SupplierDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SupplierHomePage from "./pages/supplier/SupplierHomePage";
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="/order-tracking/:orderId" element={<OrderTrackingPage />} />
         <Route path="/supplier-profile/:supplierId" element={<SupplierProfilePage />} />
         <Route path="/product/:productId" element={<ProductDetailsPage />} />
+        <Route path="/payment" element={<PaymentPage />} />
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} />
     </Router>
