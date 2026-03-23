@@ -39,7 +39,15 @@ export default function OrderTrackingPage() {
         setLoading(false);
       }
     };
+    
     fetchOrderDetails();
+    
+    // Polling every 5 seconds to track automated status changes
+    const interval = setInterval(() => {
+      fetchOrderDetails();
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, [orderId]);
 
   if (loading) {

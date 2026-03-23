@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import AddressSection from "../components/AddressSection";
 
 
 
@@ -97,6 +98,7 @@ export default function SettingsPage() {
     businessType: localStorage.getItem("userBusinessType") || "retail",
     address: localStorage.getItem("userAddress") || "123, MG Road, Guntur, Andhra Pradesh",
     pincode: localStorage.getItem("userPincode") || "522001",
+    addressLabel: localStorage.getItem("userAddressLabel") || "work",
     website: localStorage.getItem("userWebsite") || "www.abctraders.com",
     password: "",
     confirmPassword: "",
@@ -125,6 +127,7 @@ export default function SettingsPage() {
     localStorage.setItem("userBusinessType", formData.businessType);
     localStorage.setItem("userAddress", formData.address);
     localStorage.setItem("userPincode", formData.pincode);
+    localStorage.setItem("userAddressLabel", formData.addressLabel);
     localStorage.setItem("userWebsite", formData.website);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -235,13 +238,32 @@ export default function SettingsPage() {
               <InputField label="Business Website" icon="⊕" name="website" value={formData.website} onChange={handleChange} placeholder="www.example.com" />
             </>}
 
-            {/* Contact Tab */}
-            {activeTab === "contact" && <>
+            {activeTab === "contact" && <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <InputField label="Contact Email" icon="✉" type="email" name="email" value={formData.email} onChange={handleChange} />
               <InputField label="Phone Number" icon="☎" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 XXXXX XXXXX" />
-              <InputField label="Business Address" icon="⌖" name="address" value={formData.address} onChange={handleChange} placeholder="Street, City, State" />
-              <InputField label="PIN Code" icon="◎" name="pincode" value={formData.pincode} onChange={handleChange} placeholder="6-digit PIN" hint="Enter your area's postal code" />
-            </>}
+              
+              <div style={{ marginTop: 8 }}>
+                <label style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 12,
+                  letterSpacing: 0.3,
+                }}>
+                  <span style={{
+                    width: 28, height: 28, borderRadius: 7,
+                    background: "#eff6ff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 13, color: "#3b82f6",
+                  }}>⌖</span>
+                  Professional Address
+                </label>
+                <AddressSection
+                  address={formData.address}
+                  pincode={formData.pincode}
+                  addressLabel={formData.addressLabel}
+                  onChange={(field, value) => handleChange({ target: { name: field, value } })}
+                />
+              </div>
+            </div>}
 
             {/* Security Tab */}
             {activeTab === "security" && <>
@@ -290,6 +312,7 @@ export default function SettingsPage() {
                 businessType: localStorage.getItem("userBusinessType") || "retail",
                 address: localStorage.getItem("userAddress") || "123, MG Road, Guntur, Andhra Pradesh",
                 pincode: localStorage.getItem("userPincode") || "522001",
+                addressLabel: localStorage.getItem("userAddressLabel") || "work",
                 website: localStorage.getItem("userWebsite") || "www.abctraders.com",
                 password: "", confirmPassword: "",
               })} style={{

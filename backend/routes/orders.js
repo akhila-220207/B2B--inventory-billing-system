@@ -36,6 +36,28 @@ router.post('/', authMiddleware, async (req, res) => {
     });
 
     const order = await newOrder.save();
+
+    // Automated Status Progression (Demo purposes)
+    setTimeout(async () => {
+      try {
+        const orderToUpdate = await Order.findById(order._id);
+        if (orderToUpdate && orderToUpdate.status === 'Processing') {
+          orderToUpdate.status = 'Shipped';
+          await orderToUpdate.save();
+
+          setTimeout(async () => {
+            try {
+              const finalOrder = await Order.findById(order._id);
+              if (finalOrder && finalOrder.status === 'Shipped') {
+                finalOrder.status = 'Delivered';
+                await finalOrder.save();
+              }
+            } catch (err) { }
+          }, 15000); // Delivered after 15 seconds from Shipped
+        }
+      } catch (err) { }
+    }, 15000); // Shipped after 15 seconds from Processing
+
     res.status(201).json(order);
   } catch (err) {
     console.error('Order creation error:', err.message);

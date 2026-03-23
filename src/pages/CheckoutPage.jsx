@@ -8,6 +8,7 @@ import {
   FaCheckCircle,
   FaMapMarkerAlt
 } from "react-icons/fa";
+import AddressSection from "../components/AddressSection";
 
 const API_BASE = "http://127.0.0.1:5000/api";
 
@@ -16,6 +17,8 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   
   const [address, setAddress] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [addressLabel, setAddressLabel] = useState("other");
   const [loading, setLoading] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
   const [error, setError] = useState("");
@@ -53,7 +56,7 @@ export default function CheckoutPage() {
             image: item.image
           })),
           totalAmount: total,
-          shippingAddress: address
+          shippingAddress: `${address}${pincode ? ` - ${pincode}` : ''}`
         })
       });
 
@@ -136,19 +139,19 @@ export default function CheckoutPage() {
                 </h3>
                 
                 <div className="space-y-4">
-                   <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Delivery Address</label>
-                      <div className="relative">
-                        <FaMapMarkerAlt className="absolute left-4 top-4 text-gray-300" />
-                        <textarea
-                          placeholder="Project site or Office address..."
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                          rows="4"
-                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition"
-                        />
-                      </div>
-                      <p className="text-[10px] text-gray-400 mt-2">Standard lead time: 3-5 business days for bulk cargo.</p>
+                   <div className="mb-4">
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Delivery Address</label>
+                      <AddressSection
+                        address={address}
+                        pincode={pincode}
+                        addressLabel={addressLabel}
+                        onChange={(field, value) => {
+                          if (field === 'address') setAddress(value);
+                          if (field === 'pincode') setPincode(value);
+                          if (field === 'addressLabel') setAddressLabel(value);
+                        }}
+                      />
+                      <p className="text-[10px] text-gray-400 mt-4">Standard lead time: 3-5 business days for bulk cargo.</p>
                    </div>
                 </div>
               </div>
