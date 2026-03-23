@@ -325,7 +325,7 @@ const seedProducts = [
     supplierId: 1,
     stock: "Low Stock",
     stockQty: 15,
-    image: "https://images.unsplash.com/photo-1600718374623-f11f9d5fb3e9?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1591211754020-0f2b3ec3ec80?w=400&h=300&fit=crop",
     rating: 4.9,
     minOrderQty: 1
   },
