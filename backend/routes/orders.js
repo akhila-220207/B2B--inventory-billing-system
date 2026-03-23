@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 
 // Middleware: Authenticate JWT
 const authMiddleware = (req, res, next) => {
@@ -26,6 +27,27 @@ router.post('/', authMiddleware, async (req, res) => {
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'No items in order' });
+    }
+
+    // Verify all items are in stock and subtract stock
+    for (const item of items) {
+       const product = await Product.findById(item.productId || item._id);
+       if (!product) {
+          return res.status(404).json({ message: `Product ${item.name} not found` });
+       }
+       if (product.stockQty < item.quantity) {
+          return res.status(400).json({ message: `Insufficient stock for ${item.name}. Only ${product.stockQty} left.` });
+       }
+       
+       product.stockQty -= item.quantity;
+       // Mark LOW STOCK string natively if it drops below threshold
+       if (product.stockQty === 0) {
+          product.stock = "Out of Stock";
+       } else if (product.stockQty <= 15) {
+          product.stock = "Low Stock";
+       }
+       
+       await product.save();
     }
 
     const newOrder = new Order({

@@ -165,8 +165,13 @@ function ProductCard({ product, onAddToCart, onOrderNow }) {
         <StarRating rating={product.rating} />
 
         {/* Stock Badge */}
-        <div>
+        <div className="flex flex-col gap-1 items-start">
           <StockBadge stock={product.stock} />
+          {((product.stockQty ?? 0) > 0 && (product.stockQty ?? 0) <= 0.3 * (product.initialStockQty || Math.max(product.stockQty ?? 0, 100))) && (
+            <span className="text-[10px] text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-100 shrink-0">
+              Limited Stock Available
+            </span>
+          )}
         </div>
 
         {/* Price & Unit */}
@@ -311,7 +316,8 @@ export default function MarketplacePage() {
 
   // Apply filters client-side
   const applyFilters = useCallback(() => {
-    let result = [...allProducts];
+    // Only show products with stock > 0
+    let result = allProducts.filter(p => (p.stockQty ?? 0) > 0);
 
     if (search.trim()) {
       const q = search.toLowerCase();

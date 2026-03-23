@@ -70,7 +70,7 @@ function Badge({ status }) {
 }
 
 // ── Mini Alert ───────────────────────────────────────────────
-function AlertItem({ icon: Icon, message, sub, color, bg, border }) {
+function AlertItem({ icon: Icon, message, sub, color, bg, border, action }) {
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 12,
@@ -83,10 +83,19 @@ function AlertItem({ icon: Icon, message, sub, color, bg, border }) {
       }}>
         <Icon size={14} color={color} />
       </div>
-      <div>
+      <div style={{ flex: 1 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{message}</div>
         <div style={{ fontSize: 11, color: "#64748b" }}>{sub}</div>
       </div>
+      {action && (
+        <button onClick={action.onClick} style={{
+          padding: "6px 12px", borderRadius: 6, border: "none",
+          background: color, color: "#fff", fontSize: 11, fontWeight: 700,
+          cursor: "pointer", whiteSpace: "nowrap",
+        }}>
+          {action.label}
+        </button>
+      )}
     </div>
   );
 }
@@ -95,6 +104,7 @@ function AlertItem({ icon: Icon, message, sub, color, bg, border }) {
 export default function SupplierHomePage() {
   const [activeOrderTab, setActiveOrderTab] = useState("All");
   const [recentOrders, setRecentOrders] = useState([]);
+  const [refillModal, setRefillModal] = useState({ isOpen: false, product: null, addAmount: '' });
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -205,17 +215,46 @@ export default function SupplierHomePage() {
           });
         }
         
-        // Alert for low stock/no stock products
-        const lowStockProducts = productsData.filter(p => p.stock <= 10).slice(0, 1);
+        // Alert for low stock products (< 30% of initial stock)
+        const lowStockProducts = productsData.filter(p => {
+          const currentStock = p.stockQty ?? 0;
+          const initialStock = (p.initialStockQty && p.initialStockQty > 0) ? p.initialStockQty : Math.max(currentStock, 100);
+          return currentStock <= (0.3 * initialStock);
+        });
+        
         if (lowStockProducts.length > 0) {
-          dynamicAlerts.push({
-            icon: FaExclamationTriangle,
-            message: `Low stock: ${lowStockProducts[0].name}`,
-            sub: `Only ${lowStockProducts[0].stock} units remaining`,
-            color: "#b45309",
-            bg: "#fffbeb",
-            border: "#fde68a"
-          });
+          if (lowStockProducts.length === 1) {
+            dynamicAlerts.push({
+              icon: FaExclamationTriangle,
+              message: `Restock Alert: ${lowStockProducts[0].name}`,
+              sub: `Stock dropped to 30% or below (${lowStockProducts[0].stockQty ?? 0} units left). Please restock!`,
+              color: "#b45309",
+              bg: "#fffbeb",
+              border: "#fde68a",
+              action: { label: "Refill", onClick: () => setRefillModal({ isOpen: true, product: lowStockProducts[0], addAmount: '' }) }
+            });
+          } else {
+            dynamicAlerts.push({
+              icon: FaExclamationTriangle,
+              message: `Restock Alert: ${lowStockProducts.length} products low on stock`,
+              sub: `Multiple products have dropped to 30% or below. Please check your inventory!`,
+              color: "#b45309",
+              bg: "#fffbeb",
+              border: "#fde68a",
+              action: { label: "Manage", onClick: () => navigate("/supplier-dashboard/products") }
+            });
+            // highlight the one with the lowest stock
+            const critical = [...lowStockProducts].sort((a,b) => (a.stockQty||0) - (b.stockQty||0))[0];
+            dynamicAlerts.push({
+              icon: FaExclamationTriangle,
+              message: `Critical item: ${critical.name}`,
+              sub: `Only ${critical.stockQty ?? 0} units remaining.`,
+              color: "#dc2626",
+              bg: "#fef2f2",
+              border: "#fecaca",
+              action: { label: "Refill", onClick: () => setRefillModal({ isOpen: true, product: critical, addAmount: '' }) }
+            });
+          }
         }
         
         setStats({
@@ -529,6 +568,76 @@ export default function SupplierHomePage() {
           </button>
         </div>
       </div>
+
+      {/* ── Refill Stock Modal ── */}
+      {refillModal.isOpen && (
+        <div onClick={() => setRefillModal({ isOpen: false, product: null, addAmount: '' })} style={{
+          position: "fixed", inset: 0, background: "rgba(15,23,42,0.6)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          zIndex: 200, backdropFilter: "blur(4px)",
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: "#fff", borderRadius: 18, padding: "32px 28px",
+            width: 360, boxShadow: "0 24px 60px rgba(0,0,0,0.2)",
+          }}>
+            <h3 style={{ margin: "0 0 16px", color: "#0f172a", fontWeight: 900, fontSize: 18, textAlign: "center" }}>
+              Refill Stock: {refillModal.product?.name}
+            </h3>
+            <p style={{ color: "#64748b", fontSize: 13, marginBottom: 20, textAlign: "center" }}>
+              Current Stock: <strong style={{color:"#0f172a"}}>{refillModal.product?.stockQty ?? 0}</strong> units
+            </p>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>
+                Quantity to Add *
+              </label>
+              <input 
+                type="number" 
+                value={refillModal.addAmount}
+                onChange={e => setRefillModal({ ...refillModal, addAmount: e.target.value })}
+                placeholder="e.g. 50"
+                style={{
+                  width: "100%", padding: "10px 13px", borderRadius: 9,
+                  border: "2px solid #e5e7eb", background: "#f9fafb",
+                  fontSize: 13, color: "#111827", outline: "none", boxSizing: "border-box"
+                }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button 
+                onClick={async () => {
+                  const toAdd = Number(refillModal.addAmount);
+                  if (!toAdd || toAdd <= 0) return alert("Enter a valid amount to add.");
+                  try {
+                    const res = await fetch(`${API_BASE}/products/refill/${refillModal.product._id}`, {
+                      method: "PUT",
+                      headers: { 
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                      },
+                      body: JSON.stringify({ quantity: toAdd })
+                    });
+                    if (res.ok) {
+                      alert("Stock restocked successfully!");
+                      window.location.reload();
+                    } else {
+                      alert("Failed to update stock in database.");
+                    }
+                  } catch(e) { alert("Network error. Could not connect to the server."); }
+                }}
+                style={{
+                  flex: 1, padding: "11px 0", borderRadius: 10, border: "none",
+                  background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                  color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                }}>Refill Stock</button>
+              <button onClick={() => setRefillModal({ isOpen: false, product: null, addAmount: '' })} style={{
+                flex: 1, padding: "11px 0", borderRadius: 10,
+                border: "2px solid #e5e7eb", background: "#f9fafb",
+                color: "#374151", fontWeight: 600, fontSize: 14, cursor: "pointer",
+              }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

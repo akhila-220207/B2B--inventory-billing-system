@@ -364,7 +364,8 @@ const seedIfEmpty = async () => {
   try {
     const count = await Product.countDocuments();
     if (count === 0) {
-      await Product.insertMany(seedProducts);
+      const seededData = seedProducts.map(p => ({...p, initialStockQty: p.stockQty}));
+      await Product.insertMany(seededData);
       console.log(`✅ Seeded ${seedProducts.length} products into database.`);
     }
   } catch (err) {
@@ -457,6 +458,7 @@ router.post('/', authMiddleware, async (req, res) => {
       supplierId: req.user.id,
       stock,
       stockQty,
+      initialStockQty: stockQty,
       image,
       minOrderQty,
       rating: 0
@@ -504,7 +506,12 @@ router.put('/:id', authMiddleware, async (req, res) => {
     if (unit !== undefined) product.unit = unit;
     if (category !== undefined) product.category = category;
     if (stock !== undefined) product.stock = stock;
-    if (stockQty !== undefined) product.stockQty = stockQty;
+    if (stockQty !== undefined) {
+      if (stockQty > (product.initialStockQty || 0)) {
+        product.initialStockQty = stockQty;
+      }
+      product.stockQty = stockQty;
+    }
     if (image !== undefined) product.image = image;
     if (minOrderQty !== undefined) product.minOrderQty = minOrderQty;
 
@@ -535,6 +542,68 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     res.json({ message: 'Product deleted successfully' });
   } catch (err) {
     console.error('Product delete error:', err.message);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// GET /api/products/low-stock/:supplierId — Get low stock products for a supplier
+router.get('/low-stock/:supplierId', authMiddleware, async (req, res) => {
+  try {
+    // Basic verification that the user requesting is the supplier
+    if (req.user.role !== 'supplier' || req.user.id !== req.params.supplierId) {
+       return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const products = await Product.find({ supplierId: req.params.supplierId }).lean();
+    
+    // Filter for products <= 30% of initialStock
+    const lowStock = products.filter(p => {
+      const currentStock = p.stockQty ?? 0;
+      const initialStock = (p.initialStockQty && p.initialStockQty > 0) ? p.initialStockQty : Math.max(currentStock, 100);
+      return currentStock <= (0.3 * initialStock);
+    }).map(p => ({ ...p, isLowStock: true }));
+
+    res.json(lowStock);
+  } catch (err) {
+    console.error('Fetch low stock error:', err.message);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// PUT /api/products/refill/:productId — Refill stock for a specific product
+router.put('/refill/:productId', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'supplier') {
+      return res.status(403).json({ message: 'Only suppliers can refill stock' });
+    }
+
+    const { quantity } = req.body;
+    if (!quantity || quantity <= 0) {
+      return res.status(400).json({ message: 'A positive quantity is required' });
+    }
+
+    const product = await Product.findById(req.params.productId);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    // Validate ownership
+    if (String(product.supplierId) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'You can only refill your own products' });
+    }
+
+    product.stockQty = (product.stockQty || 0) + quantity;
+    
+    // Update initialStockQty if the new stock implies a higher baseline capacity
+    if (product.stockQty > (product.initialStockQty || 0)) {
+      product.initialStockQty = product.stockQty;
+    }
+
+    // Update string threshold based on standard logic
+    product.stock = product.stockQty > 15 ? "Available" : "Low Stock";
+
+    const updated = await product.save();
+    res.json(updated);
+  } catch (err) {
+    console.error('Stock refill error:', err.message);
     res.status(500).json({ message: 'Server Error' });
   }
 });
