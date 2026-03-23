@@ -257,6 +257,7 @@ export default function ProductsPage() {
     setForm(EMPTY_FORM); setEditingId(null); setShowForm(false);
   };
 
+
   // ── Filter + Sort ─────────────────────────────────────────
   const toggleSort = (col) => {
     if (sortBy === col) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -618,6 +619,7 @@ export default function ProductsPage() {
           </span>
         </div>
       </div>
+
 
       {/* ── Delete Modal ── */}
       {deleteId && (

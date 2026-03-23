@@ -5,7 +5,7 @@ import {
   FaShoppingCart, FaBox, FaUsers, FaRupeeSign,
   FaArrowUp, FaArrowDown, FaExclamationTriangle,
   FaCheckCircle, FaClock, FaTruck, FaTimes,
-  FaChartLine, FaBell, FaEye
+  FaChartLine, FaBell, FaEye, FaTrash
 } from "react-icons/fa";
 
 const API_BASE = "http://127.0.0.1:5000/api";
@@ -144,6 +144,7 @@ export default function SupplierHomePage() {
           order.items?.forEach(item => {
             if (!productSalesMap[item._id]) {
               productSalesMap[item._id] = {
+                id: item._id,
                 name: item.name,
                 sold: 0,
                 revenue: 0,
@@ -158,6 +159,7 @@ export default function SupplierHomePage() {
           .sort((a, b) => b.revenue - a.revenue)
           .slice(0, 5)
           .map(p => ({
+            id: p.id,
             name: p.name,
             sold: p.sold,
             revenue: `₹${p.revenue.toLocaleString("en-IN")}`,
@@ -233,6 +235,36 @@ export default function SupplierHomePage() {
     };
     fetchAllData();
   }, []);
+
+  const handleDeleteProduct = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to delete "${name}"? This will remove it from the marketplace.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/products/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        // Update local status to reflect deletion
+        setStats(prev => ({
+          ...prev,
+          totalProducts: prev.totalProducts - 1,
+          topProducts: prev.topProducts.filter(p => p.id !== id)
+        }));
+        alert("Product deleted successfully");
+      } else {
+        const errData = await res.json();
+        alert(errData.message || "Failed to delete product");
+      }
+    } catch (err) {
+      console.error("Delete product error:", err);
+      alert("Network error. Could not delete product.");
+    }
+  };
 
   const statCards = [
     { title: "Total Products",  value: stats.totalProducts.toString(),        icon: FaBox,         gradient: "linear-gradient(135deg,#3b82f6,#1d4ed8)", change: "+12%", positive: true  },
@@ -360,9 +392,22 @@ export default function SupplierHomePage() {
                       }}>{i + 1}</span>
                       <span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{p.name}</span>
                     </div>
-                    <div style={{ display: "flex", gap: 16 }}>
+                    <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
                       <span style={{ fontSize: 12, color: "#64748b" }}>{p.sold} sold</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: "#15803d" }}>{p.revenue}</span>
+                      <button 
+                        onClick={() => handleDeleteProduct(p.id, p.name)}
+                        style={{
+                          background: "transparent", border: "none", color: "#ef4444",
+                          cursor: "pointer", padding: "4px", borderRadius: "50%",
+                          transition: "background 0.2s",
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = "#fee2e2"}
+                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                        title="Delete Product"
+                      >
+                        <FaTrash size={12} />
+                      </button>
                     </div>
                   </div>
                   <div style={{ background: "#f1f5f9", borderRadius: 99, height: 6, overflow: "hidden" }}>

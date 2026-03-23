@@ -1,79 +1,7 @@
 //this is inventory page
 import { useState, useEffect } from "react";
 
-const API_BASE = "http://127.0.0.1:5000/api";const NAV_ITEMS = [
-  { label: "Home", icon: "⌂" },
-  { label: "Products", icon: "▦" },
-  { label: "Inventory", icon: "▤", active: true },
-  { label: "Orders", icon: "☰" },
-  { label: "Billing", icon: "▣" },
-  { label: "Reports", icon: "▧" },
-  { label: "Settings", icon: "⚙" },
-];
-
-function Sidebar() {
-  return (
-    <aside style={{
-      width: 240, minHeight: "100vh",
-      background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
-      display: "flex", flexDirection: "column",
-      boxShadow: "4px 0 24px rgba(0,0,0,0.3)",
-      position: "fixed", left: 0, top: 0, bottom: 0, zIndex: 100,
-    }}>
-      <div style={{
-        padding: "20px", borderBottom: "1px solid rgba(255,255,255,0.08)",
-        display: "flex", alignItems: "center", gap: 12,
-      }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: 10,
-          background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontWeight: 900, fontSize: 18, color: "#fff",
-          boxShadow: "0 4px 12px rgba(59,130,246,0.4)",
-        }}>S</div>
-        <span style={{ fontFamily: "'Georgia', serif", color: "#fff", fontSize: 17, fontWeight: 700 }}>
-          Supplier<span style={{ color: "#3b82f6" }}>Panel</span>
-        </span>
-        <div style={{
-          marginLeft: "auto", width: 22, height: 22, borderRadius: "50%",
-          background: "#3b82f6", display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 11, color: "#fff",
-        }}>✦</div>
-      </div>
-      <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
-        {NAV_ITEMS.map(item => (
-          <div key={item.label} style={{
-            display: "flex", alignItems: "center", gap: 12,
-            padding: "10px 14px", borderRadius: 10, cursor: "pointer",
-            background: item.active ? "linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%)" : "transparent",
-            color: item.active ? "#fff" : "rgba(255,255,255,0.55)",
-            fontSize: 14, fontWeight: item.active ? 600 : 400,
-            boxShadow: item.active ? "0 4px 12px rgba(37,99,235,0.35)" : "none",
-          }}>
-            <span style={{ fontSize: 16, width: 20, textAlign: "center" }}>{item.icon}</span>
-            {item.label}
-          </div>
-        ))}
-      </nav>
-      <div style={{
-        margin: 16, padding: "12px 14px", borderRadius: 12,
-        background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)",
-        display: "flex", alignItems: "center", gap: 10,
-      }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: "50%",
-          background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 14, color: "#fff", fontWeight: 700,
-        }}>S</div>
-        <div>
-          <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>Supplier Name</div>
-          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, letterSpacing: 1, textTransform: "uppercase" }}>Supplier Account</div>
-        </div>
-      </div>
-    </aside>
-  );
-}
+const API_BASE = "http://127.0.0.1:5000/api";
 
 const getStockStatus = (stock, threshold) => {
   if (stock === 0) return "Out of Stock";
@@ -314,10 +242,8 @@ export default function InventoryPage() {
   );
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
-      <Sidebar />
-
-      <main style={{ marginLeft: 240, flex: 1, background: "#f1f5f9", minHeight: "100vh", padding: "36px 36px" }}>
+    <div style={{ flex: 1, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+      <main style={{ flex: 1, background: "#f1f5f9", minHeight: "100vh", padding: "24px" }}>
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28 }}>
