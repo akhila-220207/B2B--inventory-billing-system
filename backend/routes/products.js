@@ -382,6 +382,10 @@ let lastCacheTime = 0;
 // GET /api/products — supports search, category, supplier, stockStatus, sortPrice
 router.get('/', async (req, res) => {
   try {
+  // Temporary: Clear out test products before fetching real data
+    await Product.deleteMany({
+  name: { $in: ["ricce", "dgsfdhg"] }
+});
     const { search, category, supplier, stockStatus, sortPrice } = req.query;
 
     const query = {};
