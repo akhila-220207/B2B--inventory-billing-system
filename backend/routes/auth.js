@@ -11,7 +11,10 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || "YOUR_GOOG
 // @desc    Register a new business user
 router.post('/register', async (req, res) => {
   try {
-    const { business, email, phone, password, role } = req.body;
+    const { 
+      business, email, phone, password, role,
+      businessType, productCategory, gstNumber, panNumber, address, pincode 
+    } = req.body;
 
     // Check if user exists
     let user = await User.findOne({ email });
@@ -29,7 +32,13 @@ router.post('/register', async (req, res) => {
       email,
       phone,
       password: hashedPassword,
-      role
+      role,
+      businessType,
+      productCategory,
+      gstNumber,
+      panNumber,
+      address,
+      pincode
     });
 
     try {
@@ -187,7 +196,10 @@ router.post('/google', async (req, res) => {
 // @desc    Complete Google registration for first time users
 router.post('/google/complete', async (req, res) => {
   try {
-    const { token, role, business } = req.body;
+    const { 
+      token, role, business,
+      businessType, productCategory, gstNumber, panNumber, address, pincode
+    } = req.body;
 
     if (!token) {
       return res.status(400).json({ message: 'Google token is required.' });
@@ -212,7 +224,13 @@ router.post('/google/complete', async (req, res) => {
       business,
       email,
       googleId: sub,
-      role
+      role,
+      businessType,
+      productCategory,
+      gstNumber,
+      panNumber,
+      address,
+      pincode
     });
 
     await user.save();
