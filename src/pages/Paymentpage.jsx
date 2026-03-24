@@ -1,33 +1,14 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export default function PaymentPage() {
-  const navigate = useNavigate();
   const location = useLocation();
   const orderData = location.state;
-  const amount = orderData?.totalAmount || 0;
+  const amount = orderData?.totalAmount || 100;
 
   const [method, setMethod] = useState("card");
 
   const handlePayment = async () => {
-    if (!orderData) {
-      alert("No order data found");
-      return;
-    }
-
-    let paymentStatus = "Paid";
-
-    if (method === "cod") {
-      paymentStatus = "Pending";
-      alert("📦 Order placed with Cash on Delivery");
-    } else if (method === "upi") {
-      alert("📱 UPI Payment Successful");
-    } else if (method === "card") {
-      alert("💳 Card Payment Successful");
-    } else {
-      alert("🏦 Net Banking Successful");
-    }
-
     try {
       await fetch("http://127.0.0.1:5000/api/orders", {
         method: "POST",
@@ -38,157 +19,171 @@ export default function PaymentPage() {
         body: JSON.stringify({
           ...orderData,
           paymentMethod: method,
-          paymentStatus
+          paymentStatus: "Paid"
         })
       });
 
-      // redirect after success
-      window.location.href = "/buyer-dashboard/orders";
-
-    } catch (err) {
-      alert("❌ Payment failed. Try again.");
+      alert("Transaction Successful");
+    } catch {
+      alert("Payment Failed");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div className="min-h-screen bg-gray-200 flex items-center justify-center">
 
-        {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-4 flex justify-between items-center">
+      <div className="w-[900px] bg-white rounded-xl shadow-lg overflow-hidden">
+
+        {/* HEADER */}
+        <div className="bg-gradient-to-r from-indigo-700 to-purple-600 text-white p-4 flex justify-between items-center">
           <div>
-            <h2 className="font-bold text-lg">B2B Payment</h2>
-            <p className="text-xs opacity-80">Txn ID: TXN12345</p>
+            <h2 className="font-semibold text-lg">easebuzz.in</h2>
+            <p className="text-xs opacity-80">T ID: ELOF472D</p>
           </div>
-          <p className="text-sm">Amount: ₹{amount}</p>
+          <div className="text-sm bg-white/20 px-3 py-1 rounded-lg">
+            Payment Link valid for 15:30
+          </div>
         </div>
 
         <div className="flex">
 
-          {/* LEFT: Payment Methods */}
-          <div className="w-1/3 border-r p-4 space-y-3">
+          {/* LEFT PANEL */}
+          <div className="w-1/3 bg-gray-50 p-4 border-r">
 
-            <button
-              onClick={() => setMethod("card")}
-              className={`w-full text-left p-3 rounded-lg ${
-                method === "card" ? "bg-blue-100" : "hover:bg-gray-100"
-              }`}
-            >
-              💳 Credit / Debit Card
-            </button>
-
-            <button
-              onClick={() => setMethod("upi")}
-              className={`w-full text-left p-3 rounded-lg ${
-                method === "upi" ? "bg-blue-100" : "hover:bg-gray-100"
-              }`}
-            >
-              📱 UPI
-            </button>
-
-            <button
-              onClick={() => setMethod("netbanking")}
-              className={`w-full text-left p-3 rounded-lg ${
-                method === "netbanking" ? "bg-blue-100" : "hover:bg-gray-100"
-              }`}
-            >
-              🏦 Net Banking
-            </button>
-
-            <button
-              onClick={() => setMethod("cod")}
-              className={`w-full text-left p-3 rounded-lg ${
-                method === "cod" ? "bg-blue-100" : "hover:bg-gray-100"
-              }`}
-            >
-              📦 Cash on Delivery
-            </button>
-          </div>
-
-          {/* RIGHT: Payment Details */}
-          <div className="w-2/3 p-6">
+            <p className="text-gray-500 text-sm mb-3">
+              Select Payment Method
+            </p>
 
             {/* CARD */}
-            {method === "card" && (
-              <div>
-                <h3 className="font-bold mb-4">Enter Card Details</h3>
+            <div
+              onClick={() => setMethod("card")}
+              className={`flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer ${
+                method === "card"
+                  ? "bg-indigo-100 border"
+                  : "hover:bg-gray-100"
+              }`}
+            >
+              <span>Credit Card</span>
+              <span className="text-xs">💳</span>
+            </div>
 
+            <div
+              onClick={() => setMethod("debit")}
+              className="flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer hover:bg-gray-100"
+            >
+              <span>Debit Card</span>
+              <span className="text-xs">💳</span>
+            </div>
+
+            <div
+              onClick={() => setMethod("upi")}
+              className={`flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer ${
+                method === "upi"
+                  ? "bg-indigo-100 border"
+                  : "hover:bg-gray-100"
+              }`}
+            >
+              <span>UPI</span>
+              <span>📱</span>
+            </div>
+
+            <div
+              onClick={() => setMethod("netbanking")}
+              className={`flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer ${
+                method === "netbanking"
+                  ? "bg-indigo-100 border"
+                  : "hover:bg-gray-100"
+              }`}
+            >
+              <span>Net Banking</span>
+              <span>🏦</span>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-gray-100">
+              <span>Wallets</span>
+              <span>👛</span>
+            </div>
+
+          </div>
+
+          {/* RIGHT PANEL */}
+          <div className="w-2/3 p-6">
+
+            <h3 className="text-gray-600 text-sm mb-4">
+              Enter Card Details
+            </h3>
+
+            {method === "card" && (
+              <>
                 <input
-                  type="text"
                   placeholder="Card Number"
-                  className="w-full border p-2 rounded mb-3"
+                  className="w-full border p-3 rounded-lg mb-3"
                 />
 
                 <div className="flex gap-3 mb-3">
                   <input
-                    type="text"
                     placeholder="MM/YY"
-                    className="w-1/2 border p-2 rounded"
+                    className="w-1/3 border p-3 rounded-lg"
                   />
                   <input
-                    type="text"
                     placeholder="CVV"
-                    className="w-1/2 border p-2 rounded"
+                    className="w-1/3 border p-3 rounded-lg"
                   />
                 </div>
 
                 <input
-                  type="text"
                   placeholder="Card Holder Name"
-                  className="w-full border p-2 rounded mb-4"
+                  className="w-full border p-3 rounded-lg"
                 />
-              </div>
+              </>
             )}
 
-            {/* UPI */}
             {method === "upi" && (
               <div className="text-center">
-                <h3 className="font-bold mb-4">Scan & Pay via UPI</h3>
                 <img
-                  className="mx-auto"
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=test@upi&pn=Demo&am=${amount}`}
+                  className="mx-auto mb-4"
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?am=${amount}`}
                   alt="QR"
                 />
-                <p className="text-sm text-gray-500 mt-3">
-                  Or enter UPI ID below
-                </p>
                 <input
-                  type="text"
-                  placeholder="example@upi"
-                  className="w-full border p-2 rounded mt-3"
+                  placeholder="Enter UPI ID"
+                  className="w-full border p-3 rounded-lg"
                 />
               </div>
             )}
 
-            {/* NET BANKING */}
             {method === "netbanking" && (
-              <div>
-                <h3 className="font-bold mb-4">Select Bank</h3>
-                <select className="w-full border p-2 rounded">
-                  <option>SBI</option>
-                  <option>HDFC</option>
-                  <option>ICICI</option>
-                </select>
-              </div>
+              <select className="w-full border p-3 rounded-lg">
+                <option>Select Bank</option>
+                <option>SBI</option>
+                <option>HDFC</option>
+                <option>ICICI</option>
+              </select>
             )}
 
-            {/* COD */}
-            {method === "cod" && (
-              <div className="text-center">
-                <h3 className="font-bold mb-4">Cash on Delivery</h3>
-                <p className="text-gray-500">
-                  Pay when your order is delivered.
-                </p>
-              </div>
-            )}
+            {/* FOOTER */}
+            <div className="mt-10 border-t pt-4">
 
-            {/* PAY BUTTON */}
-            <button
-              onClick={handlePayment}
-              className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700"
-            >
-              Pay ₹{amount}
-            </button>
+              <div className="bg-green-100 text-green-700 text-sm p-2 rounded mb-3">
+                Offers Available
+              </div>
+
+              <button
+                onClick={handlePayment}
+                className="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold"
+              >
+                Pay ₹{amount}
+              </button>
+
+              <p className="text-xs text-gray-400 mt-3 text-center">
+                By proceeding, you agree to terms & conditions
+              </p>
+
+              <p className="text-xs text-gray-400 text-right mt-2">
+                Powered by Easebuzz
+              </p>
+
+            </div>
 
           </div>
         </div>
