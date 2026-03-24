@@ -30,129 +30,108 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-200 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-6">
 
-      <div className="w-[900px] bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden">
 
         {/* HEADER */}
-        <div className="bg-gradient-to-r from-indigo-700 to-purple-600 text-white p-4 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-indigo-700 to-purple-600 text-white p-5 flex justify-between items-center">
           <div>
-            <h2 className="font-semibold text-lg">easebuzz.in</h2>
-            <p className="text-xs opacity-80">T ID: ELOF472D</p>
+            <h2 className="font-bold text-lg">easebuzz.in</h2>
+            <p className="text-xs opacity-80">Txn ID: ELOF472D</p>
           </div>
-          <div className="text-sm bg-white/20 px-3 py-1 rounded-lg">
-            Payment Link valid for 15:30
+          <div className="text-sm bg-white/20 px-4 py-1 rounded-full">
+            Valid for 15:30
           </div>
         </div>
 
         <div className="flex">
 
           {/* LEFT PANEL */}
-          <div className="w-1/3 bg-gray-50 p-4 border-r">
+          <div className="w-1/3 bg-gray-50 p-5 border-r">
 
-            <p className="text-gray-500 text-sm mb-3">
-              Select Payment Method
+            <p className="text-gray-500 text-sm mb-4 font-semibold">
+              Payment Methods
             </p>
 
-            <div
-              onClick={() => setMethod("card")}
-              className={`flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer ${
-                method === "card"
-                  ? "bg-indigo-100 border"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              <span>Credit Card</span>
-              <span>💳</span>
-            </div>
-
-            <div
-              onClick={() => setMethod("debit")}
-              className={`flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer ${
-                method === "debit"
-                  ? "bg-indigo-100 border"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              <span>Debit Card</span>
-              <span>💳</span>
-            </div>
-
-            <div
-              onClick={() => setMethod("upi")}
-              className={`flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer ${
-                method === "upi"
-                  ? "bg-indigo-100 border"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              <span>UPI</span>
-              <span>📱</span>
-            </div>
-
-            <div
-              onClick={() => setMethod("netbanking")}
-              className={`flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer ${
-                method === "netbanking"
-                  ? "bg-indigo-100 border"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              <span>Net Banking</span>
-              <span>🏦</span>
-            </div>
+            {[
+              { id: "card", label: "Credit Card 💳" },
+              { id: "debit", label: "Debit Card 💳" },
+              { id: "upi", label: "UPI 📱" },
+              { id: "netbanking", label: "Net Banking 🏦" }
+            ].map((item) => (
+              <div
+                key={item.id}
+                onClick={() => setMethod(item.id)}
+                className={`flex justify-between items-center p-3 mb-2 rounded-lg cursor-pointer transition ${
+                  method === item.id
+                    ? "bg-indigo-100 border border-indigo-400"
+                    : "hover:bg-gray-100"
+                }`}
+              >
+                <span className="font-medium">{item.label}</span>
+              </div>
+            ))}
 
           </div>
 
           {/* RIGHT PANEL */}
-          <div className="w-2/3 p-6">
+          <div className="w-2/3 p-8">
 
-            <h3 className="text-gray-600 text-sm mb-4">
-              Enter Card Details
+            <h3 className="text-gray-700 font-semibold mb-5">
+              {method === "upi"
+                ? "Pay using UPI"
+                : method === "netbanking"
+                ? "Select Your Bank"
+                : "Enter Card Details"}
             </h3>
 
-            {/* ✅ FIXED HERE */}
+            {/* CARD + DEBIT */}
             {(method === "card" || method === "debit") && (
               <>
                 <input
                   placeholder="Card Number"
-                  className="w-full border p-3 rounded-lg mb-3"
+                  className="w-full border p-3 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 />
 
-                <div className="flex gap-3 mb-3">
+                <div className="flex gap-4 mb-4">
                   <input
                     placeholder="MM/YY"
-                    className="w-1/3 border p-3 rounded-lg"
+                    className="w-1/2 border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400"
                   />
                   <input
                     placeholder="CVV"
-                    className="w-1/3 border p-3 rounded-lg"
+                    className="w-1/2 border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400"
                   />
                 </div>
 
                 <input
                   placeholder="Card Holder Name"
-                  className="w-full border p-3 rounded-lg"
+                  className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400"
                 />
               </>
             )}
 
+            {/* UPI */}
             {method === "upi" && (
               <div className="text-center">
-                <img
-                  className="mx-auto mb-4"
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?am=${amount}`}
-                  alt="QR"
-                />
+                <div className="bg-white p-4 rounded-xl shadow inline-block mb-4">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?am=${amount}`}
+                    alt="QR"
+                  />
+                </div>
+
                 <input
                   placeholder="Enter UPI ID"
-                  className="w-full border p-3 rounded-lg"
+                  className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400"
                 />
               </div>
             )}
 
+            {/* NET BANKING */}
             {method === "netbanking" && (
-              <select className="w-full border p-3 rounded-lg">
+              <select className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400">
                 <option>Select Bank</option>
                 <option>SBI</option>
                 <option>HDFC</option>
@@ -161,21 +140,21 @@ export default function PaymentPage() {
             )}
 
             {/* FOOTER */}
-            <div className="mt-10 border-t pt-4">
+            <div className="mt-10 border-t pt-5">
 
-              <div className="bg-green-100 text-green-700 text-sm p-2 rounded mb-3">
-                Offers Available
+              <div className="bg-green-100 text-green-700 text-sm p-3 rounded-lg mb-4">
+                🎉 Offers Available on this payment
               </div>
 
               <button
                 onClick={handlePayment}
-                className="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold"
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-semibold text-lg hover:opacity-90 transition"
               >
                 Pay ₹{amount}
               </button>
 
-              <p className="text-xs text-gray-400 mt-3 text-center">
-                By proceeding, you agree to terms & conditions
+              <p className="text-xs text-gray-400 mt-4 text-center">
+                By proceeding, you agree to Terms & Conditions
               </p>
 
               <p className="text-xs text-gray-400 text-right mt-2">
