@@ -65,8 +65,9 @@ export default function InventoryPage() {
 
   // Fetch real products from backend
   useEffect(() => {
+    let isFirstLoad = true;
     const fetchInventory = async () => {
-      setLoading(true);
+      if (isFirstLoad) setLoading(true);
       try {
         const res = await fetch(`${API_BASE}/products`);
         if (res.ok) {
@@ -89,10 +90,15 @@ export default function InventoryPage() {
       } catch (err) {
         console.error("Inventory fetch error:", err);
       } finally {
-        setLoading(false);
+        if (isFirstLoad) {
+          setLoading(false);
+          isFirstLoad = false;
+        }
       }
     };
     fetchInventory();
+    const interval = setInterval(fetchInventory, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const withStatus = inventory.map(i => ({ ...i, status: getStockStatus(i.stock, i.threshold) }));

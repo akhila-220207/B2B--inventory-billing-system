@@ -42,7 +42,7 @@ export default function PaymentPage() {
     }
 
     if (method === "upi") {
-      if (!/^\w+@[a-zA-Z]+$/.test(upiId.trim())) {
+      if (!/^[\w.-]+@[a-zA-Z0-9.-]+$/.test(upiId.trim())) {
         return "Please enter a valid UPI ID (e.g., name@bank).";
       }
     }
@@ -73,11 +73,19 @@ export default function PaymentPage() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          items,
+          items: items.map(item => ({
+            productId: item.productId || item._id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            supplier: item.supplier,
+            supplierId: item.supplierId,
+            image: item.image
+          })),
           totalAmount: amount,
           shippingAddress,
           paymentMethod: method,
-          paymentStatus: "Paid"
+          paymentStatus: "Completed"
         })
       });
 
@@ -209,7 +217,7 @@ export default function PaymentPage() {
               <>
                 <div className="text-center mb-4">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pn=Easebuzz&am=${amount}&tn=OrderPayment`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=easebuzz@icici&pn=Easebuzz&am=${amount}&tn=OrderPayment`}
                     alt="QR Code"
                     className="mx-auto"
                   />

@@ -123,6 +123,8 @@ export default function ProductsPage() {
       }
     };
     fetchProducts();
+    const interval = setInterval(fetchProducts, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   // ── Toast ──────────────────────────────────────────────────

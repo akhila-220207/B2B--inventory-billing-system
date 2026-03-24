@@ -310,6 +310,8 @@ export default function SupplierHomePage() {
       }
     };
     fetchAllData();
+    const interval = setInterval(fetchAllData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleDeleteProduct = async (id, name) => {
