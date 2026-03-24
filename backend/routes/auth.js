@@ -19,7 +19,7 @@ router.post('/register', async (req, res) => {
     // Check if user exists
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ message: 'User already exists with this email' });
+      return res.status(400).json({ message: `This email is already registered as a ${user.role}.` });
     }
 
     // Hash the password
@@ -153,15 +153,15 @@ router.post('/google', async (req, res) => {
         let user = await User.findOne({ email });
         
         if (user) {
-            // Update role if a different one is requested during registration
+            // Prevent using the same email for a different role
             if (requestedRole && user.role !== requestedRole) {
-                user.role = requestedRole;
+                return res.status(400).json({ message: `This email is already registered as a ${user.role}. Please use a different email.` });
             }
             // If user exists, but doesn't have a googleId, let's link them
             if (!user.googleId) {
                 user.googleId = sub;
+                await user.save();
             }
-            await user.save();
 
             // Return jsonwebtoken
             const jwtPayload = {
@@ -216,7 +216,7 @@ router.post('/google/complete', async (req, res) => {
     // See if user exists
     let user = await User.findOne({ email });
     if (user) {
-        return res.status(400).json({ message: 'User already exists' });
+        return res.status(400).json({ message: `This email is already registered as a ${user.role}. Please use a different email.` });
     }
 
     // Create the new user
