@@ -1,53 +1,56 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+
 export default function PaymentPage() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const orderData = location.state;
-    const amount = orderData?.totalAmount || 0;
-    const [method, setMethod] = useState("card");
-const handlePayment = async () => {
-  if (!orderData) {
-    alert("No order data found");
-    return;
-  }
+  const navigate = useNavigate();
+  const location = useLocation();
+  const orderData = location.state;
+  const amount = orderData?.totalAmount || 0;
 
-  let paymentStatus = "Paid";
+  const [method, setMethod] = useState("card");
 
-  if (method === "cod") {
-    paymentStatus = "Pending";
-    alert("📦 Order placed with Cash on Delivery");
-  } else if (method === "upi") {
-    alert("📱 UPI Payment Successful");
-  } else if (method === "card") {
-    alert("💳 Card Payment Successful");
-  } else {
-    alert("🏦 Net Banking Successful");
-  }
+  const handlePayment = async () => {
+    if (!orderData) {
+      alert("No order data found");
+      return;
+    }
 
-  try {
-    await fetch("http://127.0.0.1:5000/api/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      },
-      body: JSON.stringify({
-        ...orderData,
-        paymentMethod: method,
-        paymentStatus
-      })
-    });
+    let paymentStatus = "Paid";
 
-    // redirect after success
-    window.location.href = "/buyer-dashboard/orders";
+    if (method === "cod") {
+      paymentStatus = "Pending";
+      alert("📦 Order placed with Cash on Delivery");
+    } else if (method === "upi") {
+      alert("📱 UPI Payment Successful");
+    } else if (method === "card") {
+      alert("💳 Card Payment Successful");
+    } else {
+      alert("🏦 Net Banking Successful");
+    }
 
-  } catch (err) {
-    alert("❌ Payment failed. Try again.");
-  }
-};
-  
-    return (
+    try {
+      await fetch("http://127.0.0.1:5000/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({
+          ...orderData,
+          paymentMethod: method,
+          paymentStatus
+        })
+      });
+
+      // redirect after success
+      window.location.href = "/buyer-dashboard/orders";
+
+    } catch (err) {
+      alert("❌ Payment failed. Try again.");
+    }
+  };
+
+  return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden">
 
@@ -181,10 +184,10 @@ const handlePayment = async () => {
 
             {/* PAY BUTTON */}
             <button
-                onClick={handlePayment}
-                className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700"
-              >
-                Pay ₹{amount}
+              onClick={handlePayment}
+              className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700"
+            >
+              Pay ₹{amount}
             </button>
 
           </div>
