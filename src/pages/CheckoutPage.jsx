@@ -6,7 +6,10 @@ import {
   FaTruck, 
   FaCreditCard, 
   FaCheckCircle,
-  FaMapMarkerAlt
+  FaMapMarkerAlt,
+  FaPlus,
+  FaStar,
+  FaRegStar
 } from "react-icons/fa";
 import AddressSection from "../components/AddressSection";
 
@@ -22,6 +25,74 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
   const [error, setError] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
+
+  // Address states
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
+
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE}/addresses`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSavedAddresses(data);
+          const defaultAddr = data.find(a => a.isDefault);
+          if (defaultAddr) setSelectedAddressId(defaultAddr._id);
+          else if (data.length > 0) setSelectedAddressId(data[0]._id);
+          else setShowNewAddressForm(true);
+        }
+      } catch (err) { }
+    };
+    fetchAddresses();
+  }, []);
+
+  const handleSetDefault = async (id) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE}/addresses/${id}/default`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSavedAddresses(data);
+      }
+    } catch (err) { }
+  };
+
+  const handleSaveAddress = async () => {
+    if (!address.trim()) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setSavingAddress(true);
+    try {
+      const res = await fetch(`${API_BASE}/addresses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ address, pincode, label: addressLabel })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSavedAddresses(data);
+        const newAddr = data[data.length - 1]; // Latest one
+        setSelectedAddressId(newAddr._id);
+        setShowNewAddressForm(false);
+        setAddress("");
+        setPincode("");
+      }
+    } catch (err) { }
+    setSavingAddress(false);
+  };
 
   const subtotal = cartTotal;
   const gst = Math.round(subtotal * 0.05);
@@ -56,7 +127,12 @@ export default function CheckoutPage() {
             image: item.image
           })),
           totalAmount: total,
-          shippingAddress: `${address}${pincode ? ` - ${pincode}` : ''}`
+          shippingAddress: selectedAddressId
+            ? (() => {
+                const addr = savedAddresses.find(a => a._id === selectedAddressId);
+                return addr ? `${addr.address}${addr.pincode ? ` - ${addr.pincode}` : ''}` : "";
+              })()
+            : `${address}${pincode ? ` - ${pincode}` : ''}`
         })
       });
 
@@ -140,29 +216,111 @@ export default function CheckoutPage() {
                 
                 <div className="space-y-4">
                    <div className="mb-4">
-                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Delivery Address</label>
-                      <AddressSection
-                        address={address}
-                        pincode={pincode}
-                        addressLabel={addressLabel}
-                        onChange={(field, value) => {
-                          if (field === 'address') setAddress(value);
-                          if (field === 'pincode') setPincode(value);
-                          if (field === 'addressLabel') setAddressLabel(value);
-                        }}
-                      />
+                      <div className="flex items-center justify-between mb-4">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Delivery Address</label>
+                        {savedAddresses.length > 0 && (
+                          <button
+                            onClick={() => setShowNewAddressForm(!showNewAddressForm)}
+                            className="text-blue-600 text-xs font-bold flex items-center gap-1 hover:underline"
+                          >
+                            {showNewAddressForm ? "Cancel Adding" : <><FaPlus size={10} /> Add New Address</>}
+                          </button>
+                        )}
+                      </div>
+
+                      {!showNewAddressForm && savedAddresses.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {savedAddresses.map((addr) => (
+                            <div 
+                              key={addr._id}
+                              onClick={() => setSelectedAddressId(addr._id)}
+                              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                selectedAddressId === addr._id ? 'border-blue-500 bg-blue-50 shadow-md scale-[1.02]' : 'border-gray-100 bg-white hover:border-blue-200'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <span className={`text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider ${
+                                  addr.label === 'home' ? 'bg-orange-100 text-orange-700' :
+                                  addr.label === 'work' ? 'bg-purple-100 text-purple-700' :
+                                  'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {addr.label}
+                                </span>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleSetDefault(addr._id); }}
+                                  className="text-gray-400 hover:text-yellow-500"
+                                  title="Set as Default"
+                                >
+                                  {addr.isDefault ? <FaStar className="text-yellow-400" size={16} /> : <FaRegStar size={16} />}
+                                </button>
+                              </div>
+                              <p className="text-sm text-gray-800 font-medium line-clamp-2">{addr.address}</p>
+                              {addr.pincode && <p className="text-xs text-gray-500 mt-1">PIN: {addr.pincode}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-4 animate-fadeIn">
+                          <AddressSection
+                            address={address}
+                            pincode={pincode}
+                            addressLabel={addressLabel}
+                            onChange={(field, value) => {
+                              if (field === 'address') setAddress(value);
+                              if (field === 'pincode') setPincode(value);
+                              if (field === 'addressLabel') setAddressLabel(value);
+                            }}
+                          />
+                          {localStorage.getItem("token") && (
+                            <button
+                              onClick={handleSaveAddress}
+                              disabled={savingAddress || !address.trim()}
+                              className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-black disabled:bg-gray-300 transition"
+                            >
+                              {savingAddress ? 'Saving...' : 'Save this Address'}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      
                       <p className="text-[10px] text-gray-400 mt-4">Standard lead time: 3-5 business days for bulk cargo.</p>
                    </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 opacity-60">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <FaCreditCard className="text-gray-400" /> Payment Terms
+                  <FaCreditCard className="text-gray-400" /> Payment Terms & Notifications
                 </h3>
-                <div className="p-4 bg-gray-50 rounded-xl">
+                <div className="p-4 bg-gray-50 rounded-xl mb-6">
                    <p className="text-xs font-bold text-gray-500 mb-1">Invoiced on Delivery (Net 30)</p>
                    <p className="text-[10px] text-gray-400">Payment method will be activated once credit line is verified by supplier.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">WhatsApp Number (For Tracking)</label>
+                  <div className="flex gap-2">
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="w-24 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
+                    >
+                      <option value="+91">+91 (IN)</option>
+                      <option value="+1">+1 (US)</option>
+                      <option value="+44">+44 (UK)</option>
+                      <option value="+971">+971 (UAE)</option>
+                      <option value="+65">+65 (SG)</option>
+                      <option value="+61">+61 (AU)</option>
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="9876543210"
+                      value={whatsappNumber}
+                      onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ''))}
+                      className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-400">We will send your order tracking details and invoices to this number.</p>
                 </div>
               </div>
             </div>
@@ -205,13 +363,39 @@ export default function CheckoutPage() {
                    </p>
                 )}
 
-                <button
-                  onClick={handleConfirmOrder}
-                  disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white py-4 rounded-xl font-black text-base shadow-lg shadow-blue-100 transition-all active:scale-95"
-                >
-                  {loading ? "Processing Order..." : "Place Bulk Order"}
-                </button>
+                
+                
+              <button
+  onClick={() => {
+    let finalAddressStr = "";
+    if (!showNewAddressForm && selectedAddressId) {
+       const addr = savedAddresses.find(a => a._id === selectedAddressId);
+       if (!addr) {
+          alert("⚠️ Invalid address selected."); return;
+       }
+       finalAddressStr = `${addr.address}${addr.pincode ? ` - ${addr.pincode}` : ''}`;
+    } else {
+       if (!address.trim()) {
+         alert("⚠️ Please enter a delivery address before proceeding to payment");
+         return;
+       }
+       finalAddressStr = `${address}${pincode ? ` - ${pincode}` : ''}`;
+    }
+
+    navigate("/payment", {
+      state: {
+        items: cartItems,
+        totalAmount: total,
+        shippingAddress: finalAddressStr,
+        whatsappNumber: whatsappNumber ? `${countryCode}${whatsappNumber}` : ''
+      }
+    });
+  }}
+  disabled={loading}
+  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white py-4 rounded-xl font-black text-base shadow-lg shadow-blue-100 transition-all active:scale-95"
+>
+  Proceed to Payment
+</button>
                 
                 <p className="text-[10px] text-gray-400 text-center mt-4">
                   By clicking, you authorize the issuance of a digital purchase order.

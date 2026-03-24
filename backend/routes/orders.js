@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
+const User = require('../models/User');
+const { sendWhatsAppTracking } = require('../utils/whatsapp');
+const { sendOrderConfirmationEmail, sendSupplierOrderAlertEmail } = require('../utils/email');
 
 // Middleware: Authenticate JWT
 const authMiddleware = (req, res, next) => {
@@ -22,20 +26,94 @@ const authMiddleware = (req, res, next) => {
 // POST /api/orders — Create a new order
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { items, totalAmount, shippingAddress } = req.body;
+    const { items, totalAmount, shippingAddress, paymentMethod, paymentStatus, whatsappNumber } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'No items in order' });
+    }
+
+    // Verify all items are in stock and subtract stock
+    for (const item of items) {
+       const product = await Product.findById(item.productId || item._id);
+       if (!product) {
+          return res.status(404).json({ message: `Product ${item.name} not found` });
+       }
+       if (product.stockQty < item.quantity) {
+          return res.status(400).json({ message: `Insufficient stock for ${item.name}. Only ${product.stockQty} left.` });
+       }
+       
+       product.stockQty -= item.quantity;
+       // Mark LOW STOCK string natively if it drops below threshold
+       if (product.stockQty === 0) {
+          product.stock = "Out of Stock";
+       } else if (product.stockQty <= 15) {
+          product.stock = "Low Stock";
+       }
+       
+       await product.save();
     }
 
     const newOrder = new Order({
       userId: req.user.id,
       items,
       totalAmount,
-      shippingAddress
-    });
+      shippingAddress,
+      paymentMethod,
+      paymentStatus,
+      whatsappNumber
+});
 
     const order = await newOrder.save();
+
+    // Send Professional WhatsApp Notification
+    let notificationStatus = 'none';
+    if (whatsappNumber) {
+      notificationStatus = await sendWhatsAppTracking(whatsappNumber, { orderId: order._id, amount: totalAmount })
+        .catch(err => { console.error('WhatsApp Error:', err.message); return 'error'; });
+    }
+
+    // Send Emails (Async — non-blocking)
+    setImmediate(async () => {
+      try {
+        const buyer = await User.findById(req.user.id);
+        const trackingUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/order-tracking/${order._id}`;
+
+        // 1. Buyer order confirmation email
+        if (buyer) {
+          await sendOrderConfirmationEmail({
+            to: buyer.email,
+            buyerName: buyer.business,
+            orderId: order._id,
+            items,
+            totalAmount,
+            shippingAddress,
+            trackingUrl
+          });
+        }
+
+        // 2. Supplier alert emails — one per unique supplier
+        const supplierIds = [...new Set(items.map(i => i.supplierId).filter(Boolean))];
+        for (const supplierId of supplierIds) {
+          const supplier = await User.findById(supplierId);
+          if (supplier) {
+            const supplierItems = items.filter(i => i.supplierId?.toString() === supplierId.toString());
+            const supplierTotal = supplierItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+            await sendSupplierOrderAlertEmail({
+              to: supplier.email,
+              supplierName: supplier.business,
+              orderId: order._id,
+              buyerBusiness: buyer?.business || 'A buyer',
+              items: supplierItems,
+              totalAmount: supplierTotal
+            });
+          }
+        }
+      } catch (emailErr) {
+        console.error('Silent Email Error:', emailErr.message);
+      }
+    });
+
+    res.status(201).json({ ...order._doc, notificationStatus });
 
     // Automated Status Progression (Demo purposes)
     setTimeout(async () => {
@@ -58,7 +136,6 @@ router.post('/', authMiddleware, async (req, res) => {
       } catch (err) { }
     }, 15000); // Shipped after 15 seconds from Processing
 
-    res.status(201).json(order);
   } catch (err) {
     console.error('Order creation error:', err.message);
     res.status(500).json({ message: 'Server Error' });

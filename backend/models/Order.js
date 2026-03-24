@@ -41,7 +41,9 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ['Pending', 'Completed', 'Failed'],
     default: 'Pending'
-  }
+  },
+  paymentMethod: String,
+  whatsappNumber: String
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

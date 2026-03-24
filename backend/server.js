@@ -1,6 +1,7 @@
 require('dotenv').config();
 const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first');
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -9,8 +10,8 @@ const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const cartRoutes = require('./routes/cart');
 const orderRoutes = require('./routes/orders');
-
-
+const paymentRoutes = require('./payment');
+const addressRoutes = require('./routes/addresses');
 const app = express();
 
 // Middleware
@@ -21,37 +22,39 @@ app.use(cors({
   credentials: true,
 }));
 
+// ✅ Test / Root Route (IMPORTANT - moved to correct place)
+app.get('/', (req, res) => {
+  res.json({ status: 'Online', message: 'Inventa Fresh API' });
+});
+
 // Route Middlewares
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
-
-
+app.use('/api/payment', paymentRoutes);
+app.use('/api/addresses', addressRoutes);
 // Database Connection & Server Start
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
-mongoose.connect(MONGODB_URI, { 
-    // Recommended options for reliability
-    serverSelectionTimeoutMS: 5000
+mongoose.connect(MONGODB_URI, {
+  serverSelectionTimeoutMS: 5000
 })
 .then(() => {
-    console.log('✅ MongoDB Atlas connected successfully. Database is ready!');
-    console.log('Connection readyState:', mongoose.connection.readyState);
-    app.listen(PORT, () => {
-        console.log(`🚀 Fresh Backend Server running on http://localhost:${PORT}`);
-    });
+  console.log('✅ MongoDB Atlas connected successfully');
+  console.log('Connection readyState:', mongoose.connection.readyState);
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
 })
 .catch(err => {
-    console.error('❌ Failed to connect to MongoDB Atlas!');
-    console.error('Error details:', err.message);
-    
-    // Still start server to show friendly API error message if DB is down
-    app.listen(PORT, () => {
-        console.log(`⚠️ Server running without database on http://localhost:${PORT}`);
-    });
-});
+  console.error('❌ Failed to connect to MongoDB');
+  console.error('Error:', err.message);
 
-// Fallback Route
-app.get('/', (req, res) => res.json({ status: 'Online', message: 'Inventa Fresh API' }));
+  // Start server even if DB fails
+  app.listen(PORT, () => {
+    console.log(`⚠️ Server running WITHOUT database on http://localhost:${PORT}`);
+  });
+});

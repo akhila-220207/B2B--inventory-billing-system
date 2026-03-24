@@ -1,4 +1,5 @@
 //THIS IS PRODUCT PAGE
+
 import { useState, useEffect } from "react";
 import {
   FaSearch, FaBox, FaPlus, FaEdit, FaTrash,
@@ -95,6 +96,7 @@ export default function ProductsPage() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [showForm, setShowForm]         = useState(false);
   const [deleteId, setDeleteId]         = useState(null);
+  const [refillModal, setRefillModal]   = useState({ isOpen: false, product: null, addAmount: '' });
   const [sortBy, setSortBy]             = useState("name");
   const [sortDir, setSortDir]           = useState("asc");
   const [toast, setToast]               = useState(null);
@@ -589,6 +591,12 @@ export default function ProductsPage() {
                           color: "#1d4ed8", fontSize: 12, fontWeight: 600, cursor: "pointer",
                           display: "flex", alignItems: "center", gap: 4,
                         }}><FaEdit size={10} /> Edit</button>
+                        <button onClick={() => setRefillModal({ isOpen: true, product: p, addAmount: '' })} style={{
+                          padding: "6px 11px", borderRadius: 7,
+                          border: "1.5px solid #bbf7d0", background: "#f0fdf4",
+                          color: "#15803d", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                          display: "flex", alignItems: "center", gap: 4,
+                        }}>Refill</button>
                         <button onClick={() => setDeleteId(p._id)} style={{
                           padding: "6px 9px", borderRadius: 7,
                           border: "1.5px solid #fecaca", background: "#fef2f2",
@@ -652,6 +660,78 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
+      {/* ── Refill Stock Modal ── */}
+      {refillModal.isOpen && (
+        <div onClick={() => setRefillModal({ isOpen: false, product: null, addAmount: '' })} style={{
+          position: "fixed", inset: 0, background: "rgba(15,23,42,0.6)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          zIndex: 200, backdropFilter: "blur(4px)",
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: "#fff", borderRadius: 18, padding: "32px 28px",
+            width: 360, textAlign: "center", boxShadow: "0 24px 60px rgba(0,0,0,0.2)",
+          }}>
+            <h3 style={{ margin: "0 0 16px", color: "#0f172a", fontWeight: 800, fontSize: 18 }}>
+              Refill Stock: {refillModal.product?.name}
+            </h3>
+            <p style={{ color: "#64748b", fontSize: 13, marginBottom: 20 }}>
+              Current Stock: <strong>{refillModal.product?.stockQty ?? refillModal.product?.stock ?? 0}</strong>
+            </p>
+            <div style={{ marginBottom: 20, textAlign: "left" }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>
+                Quantity to Add *
+              </label>
+              <input 
+                type="number" 
+                value={refillModal.addAmount}
+                onChange={e => setRefillModal({ ...refillModal, addAmount: e.target.value })}
+                placeholder="e.g. 50"
+                style={{
+                  width: "100%", padding: "10px 13px", borderRadius: 9,
+                  border: "2px solid #e5e7eb", background: "#f9fafb",
+                  fontSize: 13, color: "#111827", outline: "none", boxSizing: "border-box"
+                }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button 
+                onClick={async () => {
+                  const toAdd = Number(refillModal.addAmount);
+                  if (!toAdd || toAdd <= 0) { showToast("Enter a valid amount", "error"); return; }
+                  try {
+                    const res = await fetch(`${API_BASE}/products/refill/${refillModal.product._id}`, {
+                      method: "PUT",
+                      headers: { 
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                      },
+                      body: JSON.stringify({ quantity: toAdd })
+                    });
+                    if (res.ok) {
+                      const updated = await res.json();
+                      setProducts(prev => prev.map(p => p._id === updated._id ? updated : p));
+                      setRefillModal({ isOpen: false, product: null, addAmount: '' });
+                      showToast("Stock refilled successfully!");
+                    } else {
+                      showToast("Failed to refill stock", "error");
+                    }
+                  } catch(e) { showToast("Network error", "error"); }
+                }}
+                style={{
+                  flex: 1, padding: "11px 0", borderRadius: 10, border: "none",
+                  background: "linear-gradient(135deg,#16a34a,#15803d)",
+                  color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                }}>Refill</button>
+              <button onClick={() => setRefillModal({ isOpen: false, product: null, addAmount: '' })} style={{
+                flex: 1, padding: "11px 0", borderRadius: 10,
+                border: "2px solid #e5e7eb", background: "#f9fafb",
+                color: "#374151", fontWeight: 600, fontSize: 14, cursor: "pointer",
+              }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -10,7 +10,9 @@ import {
   FaTimes,
   FaCheckCircle,
   FaBolt,
+  FaList,
 } from "react-icons/fa";
+import BulkOrderModal from "../components/BulkOrderModal";
 
 const API_BASE = "http://127.0.0.1:5000/api";
 
@@ -163,8 +165,13 @@ function ProductCard({ product, onAddToCart, onOrderNow }) {
         <StarRating rating={product.rating} />
 
         {/* Stock Badge */}
-        <div>
+        <div className="flex flex-col gap-1 items-start">
           <StockBadge stock={product.stock} />
+          {((product.stockQty ?? 0) > 0 && (product.stockQty ?? 0) <= 0.3 * (product.initialStockQty || Math.max(product.stockQty ?? 0, 100))) && (
+            <span className="text-[10px] text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-100 shrink-0">
+              Limited Stock Available
+            </span>
+          )}
         </div>
 
         {/* Price & Unit */}
@@ -264,6 +271,7 @@ export default function MarketplacePage() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -308,7 +316,8 @@ export default function MarketplacePage() {
 
   // Apply filters client-side
   const applyFilters = useCallback(() => {
-    let result = [...allProducts];
+    // Only show products with stock > 0
+    let result = allProducts.filter(p => (p.stockQty ?? 0) > 0);
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -362,6 +371,13 @@ export default function MarketplacePage() {
     [addToCart]
   );
 
+  const handleAddBulk = async (matchedItems) => {
+    for (const item of matchedItems) {
+      await addToCart(item.matchedProduct, item.parsedQty);
+    }
+    setToast(`Added ${matchedItems.length} items to your cart from Bulk Order!`);
+  };
+
   const handleOrderNow = useCallback(
     async (product, qty) => {
       await clearCart();
@@ -403,11 +419,21 @@ export default function MarketplacePage() {
               Find and buy products from our verified sellers
            </p>
         </div>
-        <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-2 rounded-xl">
-          <FaShoppingCart className="text-blue-600" />
-          <span className="text-sm font-semibold text-blue-700">
-            {cartCount} item{cartCount !== 1 ? "s" : ""} in cart
-          </span>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsBulkModalOpen(true)}
+            className="flex items-center gap-2 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-4 py-2 rounded-xl transition shadow-sm"
+          >
+            <FaList className="text-purple-600" />
+            <span className="text-sm font-semibold text-purple-700">Bulk Order</span>
+          </button>
+          
+          <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-2 rounded-xl">
+            <FaShoppingCart className="text-blue-600" />
+            <span className="text-sm font-semibold text-blue-700">
+              {cartCount} item{cartCount !== 1 ? "s" : ""} in cart
+            </span>
+          </div>
         </div>
       </div>
 
@@ -588,6 +614,14 @@ export default function MarketplacePage() {
       {toast && (
         <Toast message={toast} onClose={() => setToast(null)} />
       )}
+
+      {/* Bulk Order Modal */}
+      <BulkOrderModal 
+        isOpen={isBulkModalOpen} 
+        onClose={() => setIsBulkModalOpen(false)} 
+        products={allProducts} 
+        onAddBulk={handleAddBulk} 
+      />
     </div>
   );
 }

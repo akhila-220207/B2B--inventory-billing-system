@@ -46,6 +46,10 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 100
   },
+  initialStockQty: {
+    type: Number,
+    default: 0
+  },
   image: {
     type: String,
     default: ''

@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
+const { sendWelcomeEmail } = require('../utils/email');
 
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID");
@@ -11,11 +12,19 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || "YOUR_GOOG
 // @desc    Register a new business user
 router.post('/register', async (req, res) => {
   try {
-    const { business, email, phone, password, role } = req.body;
+    const { 
+      business, email, phone, password, role,
+      businessType, productCategory, gstNumber, panNumber, address, pincode 
+    } = req.body;
 
     // Check if user exists
     let user = await User.findOne({ email });
     if (user) {
+      if (user.role !== role) {
+        return res.status(400).json({ 
+          message: `This email is already registered as a ${user.role}. You cannot use it for a ${role} account.` 
+        });
+      }
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
@@ -29,7 +38,13 @@ router.post('/register', async (req, res) => {
       email,
       phone,
       password: hashedPassword,
-      role
+      role,
+      businessType,
+      productCategory,
+      gstNumber,
+      panNumber,
+      address,
+      pincode
     });
 
     try {
@@ -60,9 +75,12 @@ router.post('/register', async (req, res) => {
           business: user.business,
           email: user.email,
           phone: user.phone,
-          name: user.business, // using business as name if not present
+          name: user.business,
           message: 'User registered successfully!'
         });
+        // Send welcome email asynchronously after response
+        sendWelcomeEmail({ to: user.email, name: user.business, role: user.role })
+          .catch(err => console.error('Welcome email error:', err.message));
       }
     );
 
@@ -144,9 +162,11 @@ router.post('/google', async (req, res) => {
         let user = await User.findOne({ email });
         
         if (user) {
-            // Update role if a different one is requested during registration
+            // Block role switching
             if (requestedRole && user.role !== requestedRole) {
-                user.role = requestedRole;
+              return res.status(403).json({ 
+                message: `This email is already associated with a ${user.role} account. You cannot sign in as a ${requestedRole}.` 
+              });
             }
             // If user exists, but doesn't have a googleId, let's link them
             if (!user.googleId) {
@@ -187,7 +207,10 @@ router.post('/google', async (req, res) => {
 // @desc    Complete Google registration for first time users
 router.post('/google/complete', async (req, res) => {
   try {
-    const { token, role, business } = req.body;
+    const { 
+      token, role, business,
+      businessType, productCategory, gstNumber, panNumber, address, pincode
+    } = req.body;
 
     if (!token) {
       return res.status(400).json({ message: 'Google token is required.' });
@@ -204,7 +227,12 @@ router.post('/google/complete', async (req, res) => {
     // See if user exists
     let user = await User.findOne({ email });
     if (user) {
-        return res.status(400).json({ message: 'User already exists' });
+        if (user.role !== role) {
+          return res.status(400).json({ 
+            message: `This email is already registered as a ${user.role}. You cannot use it for a ${role} account.` 
+          });
+        }
+        return res.status(400).json({ message: 'User already exists with this email' });
     }
 
     // Create the new user
@@ -212,7 +240,13 @@ router.post('/google/complete', async (req, res) => {
       business,
       email,
       googleId: sub,
-      role
+      role,
+      businessType,
+      productCategory,
+      gstNumber,
+      panNumber,
+      address,
+      pincode
     });
 
     await user.save();
