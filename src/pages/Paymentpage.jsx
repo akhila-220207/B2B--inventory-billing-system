@@ -53,7 +53,7 @@ export default function PaymentPage() {
             <p className="text-gray-500 text-sm mb-3">
               Select Payment Method
             </p>
-            {/*Integrated payment methods */}
+
             <div
               onClick={() => setMethod("card")}
               className={`flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer ${
@@ -63,15 +63,19 @@ export default function PaymentPage() {
               }`}
             >
               <span>Credit Card</span>
-              <span className="text-xs">💳</span>
+              <span>💳</span>
             </div>
 
             <div
               onClick={() => setMethod("debit")}
-              className="flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer hover:bg-gray-100"
+              className={`flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer ${
+                method === "debit"
+                  ? "bg-indigo-100 border"
+                  : "hover:bg-gray-100"
+              }`}
             >
               <span>Debit Card</span>
-              <span className="text-xs">💳</span>
+              <span>💳</span>
             </div>
 
             <div
@@ -98,11 +102,6 @@ export default function PaymentPage() {
               <span>🏦</span>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-gray-100">
-              <span>Wallets</span>
-              <span>👛</span>
-            </div>
-
           </div>
 
           {/* RIGHT PANEL */}
@@ -112,7 +111,8 @@ export default function PaymentPage() {
               Enter Card Details
             </h3>
 
-            {method === "card" && (
+            {/* ✅ FIXED HERE */}
+            {(method === "card" || method === "debit") && (
               <>
                 <input
                   placeholder="Card Number"
