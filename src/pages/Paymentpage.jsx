@@ -53,8 +53,7 @@ export default function PaymentPage() {
             <p className="text-gray-500 text-sm mb-3">
               Select Payment Method
             </p>
-
-            {/* CARD */}
+            {/*Integrated payment methods */}
             <div
               onClick={() => setMethod("card")}
               className={`flex items-center justify-between p-3 rounded-lg mb-2 cursor-pointer ${
