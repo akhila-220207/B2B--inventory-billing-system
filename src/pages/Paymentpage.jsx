@@ -1,168 +1,267 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function PaymentPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const orderData = location.state;
-  const amount = orderData?.totalAmount || 100;
+
+  const items = orderData?.items || [];
+  const amount = orderData?.totalAmount ?? 0;
+  const shippingAddress = orderData?.shippingAddress || "";
 
   const [method, setMethod] = useState("card");
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [cardHolder, setCardHolder] = useState("");
+  const [upiId, setUpiId] = useState("");
+  const [netbankingBank, setNetbankingBank] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const validationError = () => {
+    if (!orderData || items.length === 0) {
+      return "No order details found. Please go to checkout and try again.";
+    }
+
+    if (method === "card" || method === "debit") {
+      if (!/^[0-9]{13,19}$/.test(cardNumber.replace(/\s/g, ""))) {
+        return "Please enter a valid card number (13-19 digits).";
+      }
+      if (!/^(0[1-9]|1[0-2])\/(\d{2}|\d{4})$/.test(expiry)) {
+        return "Please enter a valid expiry date (MM/YY or MM/YYYY).";
+      }
+      if (!/^[0-9]{3,4}$/.test(cvv)) {
+        return "Please enter a valid CVV (3 or 4 digits).";
+      }
+      if (!cardHolder.trim()) {
+        return "Please enter card holder name.";
+      }
+    }
+
+    if (method === "upi") {
+      if (!/^\w+@[a-zA-Z]+$/.test(upiId.trim())) {
+        return "Please enter a valid UPI ID (e.g., name@bank).";
+      }
+    }
+
+    if (method === "netbanking" && !netbankingBank) {
+      return "Please select your bank for net banking.";
+    }
+
+    return "";
+  };
 
   const handlePayment = async () => {
+    setError("");
+    const validation = validationError();
+    if (validation) {
+      setError(validation);
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-      await fetch("http://127.0.0.1:5000/api/orders", {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://127.0.0.1:5000/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          ...orderData,
+          items,
+          totalAmount: amount,
+          shippingAddress,
           paymentMethod: method,
           paymentStatus: "Paid"
         })
       });
 
-      alert("Transaction Successful");
-    } catch {
-      alert("Payment Failed");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Payment failed. Please try again.");
+      }
+
+      toast.success("Payment successful! Order placed successfully.");
+      setTimeout(() => {
+        navigate("/buyer-dashboard/orders", { replace: true });
+      }, 900);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Payment failed. Please retry.");
+      toast.error(err.message || "Payment failed");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  if (!orderData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+        <div className="bg-white p-10 rounded-2xl shadow-lg text-center max-w-md">
+          <h3 className="text-xl font-bold mb-3">No order found</h3>
+          <p className="text-sm text-gray-500 mb-6">Please complete your checkout before making a payment.</p>
+          <button
+            onClick={() => navigate("/buyer-dashboard/checkout")}
+            className="px-5 py-3 bg-blue-600 text-white rounded-xl"
+          >
+            Go to Checkout
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-6">
-
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-6 transition-all">
       <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden">
-
-        {/* HEADER */}
         <div className="bg-gradient-to-r from-indigo-700 to-purple-600 text-white p-5 flex justify-between items-center">
           <div>
             <h2 className="font-bold text-lg">easebuzz.in</h2>
-            <p className="text-xs opacity-80">Txn ID: ELOF472D</p>
+            <p className="text-xs opacity-80">Txn ID: {orderData?.txnId || "ELOF" + Date.now().toString().slice(-6)}</p>
           </div>
-          <div className="text-sm bg-white/20 px-4 py-1 rounded-full">
-            Valid for 15:30
-          </div>
+          <div className="text-sm bg-white/20 px-4 py-1 rounded-full">Valid for 15:00</div>
         </div>
 
-        <div className="flex">
-
-          {/* LEFT PANEL */}
-          <div className="w-1/3 bg-gray-50 p-5 border-r">
-
-            <p className="text-gray-500 text-sm mb-4 font-semibold">
-              Payment Methods
-            </p>
-
+        <div className="flex flex-col lg:flex-row">
+          <div className="w-full lg:w-1/3 bg-gray-50 p-5 border-r">
+            <p className="text-gray-500 text-sm mb-4 font-semibold">Payment Methods</p>
             {[
               { id: "card", label: "Credit Card 💳" },
               { id: "debit", label: "Debit Card 💳" },
               { id: "upi", label: "UPI 📱" },
               { id: "netbanking", label: "Net Banking 🏦" }
             ].map((item) => (
-              <div
+              <button
                 key={item.id}
+                type="button"
                 onClick={() => setMethod(item.id)}
-                className={`flex justify-between items-center p-3 mb-2 rounded-lg cursor-pointer transition ${
-                  method === item.id
-                    ? "bg-indigo-100 border border-indigo-400"
-                    : "hover:bg-gray-100"
+                className={`flex justify-between items-center w-full p-3 mb-2 rounded-lg text-left transition ${
+                  method === item.id ? "bg-indigo-100 border border-indigo-400" : "hover:bg-gray-100"
                 }`}
               >
                 <span className="font-medium">{item.label}</span>
-              </div>
+                {method === item.id && <span className="text-xs text-indigo-500">Selected</span>}
+              </button>
             ))}
 
+            <div className="mt-6 p-3 rounded-xl bg-white border border-emerald-100 text-emerald-700 text-xs">
+              For business orders, payment confirmation is instant and inventory is reserved immediately.
+            </div>
+
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs rounded-xl">
+              Support: <a href="mailto:support@easebuzz.in" className="underline">support@easebuzz.in</a>
+            </div>
           </div>
 
-          {/* RIGHT PANEL */}
-          <div className="w-2/3 p-8">
-
-            <h3 className="text-gray-700 font-semibold mb-5">
-              {method === "upi"
-                ? "Pay using UPI"
-                : method === "netbanking"
-                ? "Select Your Bank"
-                : "Enter Card Details"}
+          <div className="w-full lg:w-2/3 p-8">
+            <h3 className="text-gray-700 font-semibold mb-3">
+              {method === "upi" ? "Pay using UPI" : method === "netbanking" ? "Net Banking" : "Enter Card Details"}
             </h3>
 
-            {/* CARD + DEBIT */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
             {(method === "card" || method === "debit") && (
               <>
                 <input
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(e.target.value)}
+                  maxLength={19}
                   placeholder="Card Number"
                   className="w-full border p-3 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 />
-
                 <div className="flex gap-4 mb-4">
                   <input
+                    value={expiry}
+                    onChange={(e) => setExpiry(e.target.value)}
+                    maxLength={7}
                     placeholder="MM/YY"
                     className="w-1/2 border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400"
                   />
                   <input
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value)}
+                    maxLength={4}
                     placeholder="CVV"
+                    type="password"
                     className="w-1/2 border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400"
                   />
                 </div>
-
                 <input
+                  value={cardHolder}
+                  onChange={(e) => setCardHolder(e.target.value)}
                   placeholder="Card Holder Name"
                   className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400"
                 />
               </>
             )}
 
-            {/* UPI */}
             {method === "upi" && (
-              <div className="text-center">
-                <div className="bg-white p-4 rounded-xl shadow inline-block mb-4">
+              <>
+                <div className="text-center mb-4">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?am=${amount}`}
-                    alt="QR"
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pn=Easebuzz&am=${amount}&tn=OrderPayment`}
+                    alt="QR Code"
+                    className="mx-auto"
                   />
                 </div>
-
                 <input
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
                   placeholder="Enter UPI ID"
                   className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400"
                 />
-              </div>
+              </>
             )}
 
-            {/* NET BANKING */}
             {method === "netbanking" && (
-              <select className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400">
-                <option>Select Bank</option>
+              <select
+                value={netbankingBank}
+                onChange={(e) => setNetbankingBank(e.target.value)}
+                className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-400"
+              >
+                <option value="">Select Bank</option>
                 <option>SBI</option>
                 <option>HDFC</option>
                 <option>ICICI</option>
+                <option>Axis</option>
+                <option>PNB</option>
               </select>
             )}
 
-            {/* FOOTER */}
             <div className="mt-10 border-t pt-5">
-
               <div className="bg-green-100 text-green-700 text-sm p-3 rounded-lg mb-4">
-                🎉 Offers Available on this payment
+                🎉 Offers available for selected payment method. No extra transaction charges.
               </div>
 
               <button
                 onClick={handlePayment}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-semibold text-lg hover:opacity-90 transition"
+                disabled={isSubmitting}
+                className={`w-full ${isSubmitting ? "bg-gray-400" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90"} text-white py-3 rounded-xl font-semibold text-lg transition`}
               >
-                Pay ₹{amount}
+                {isSubmitting ? "Processing Payment..." : `Pay ₹${amount.toLocaleString("en-IN")}`}
               </button>
 
-              <p className="text-xs text-gray-400 mt-4 text-center">
-                By proceeding, you agree to Terms & Conditions
+              <p className="text-xs text-gray-500 mt-3 text-center">
+                By proceeding, you agree to Terms & Conditions and Refund Policy.
               </p>
 
-              <p className="text-xs text-gray-400 text-right mt-2">
-                Powered by Easebuzz
-              </p>
-
+              <p className="text-xs text-gray-400 text-right mt-2">Powered by Easebuzz</p>
             </div>
 
+            <div className="mt-5 text-xs text-gray-500">
+              <p>Total Items: {items.length}</p>
+              <p>Shipping Address: {shippingAddress}</p>
+            </div>
           </div>
         </div>
       </div>
