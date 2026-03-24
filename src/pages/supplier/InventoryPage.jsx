@@ -180,24 +180,60 @@ export default function InventoryPage() {
     setDeleteId(null);
   };
 
-  const handleEdit = () => {
-    setInventory(prev => prev.map(i => i.id === editItem.id ? {
-      ...editItem,
-      stock: Number(editItem.stock),
-      threshold: Number(editItem.threshold),
-      price: Number(editItem.price),
-      lastUpdated: new Date().toISOString().slice(0, 10),
-    } : i));
-    setEditItem(null);
+  const handleEdit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/products/${editItem.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          name: editItem.product,
+          price: Number(editItem.price),
+          stockQty: Number(editItem.stock),
+          category: editItem.category,
+          unit: editItem.unit
+        })
+      });
+      if (res.ok) {
+        setInventory(prev => prev.map(i => i.id === editItem.id ? {
+          ...editItem,
+          stock: Number(editItem.stock),
+          threshold: Number(editItem.threshold),
+          price: Number(editItem.price),
+          lastUpdated: new Date().toISOString().slice(0, 10),
+        } : i));
+        setEditItem(null);
+      } else {
+        alert("Failed to update product");
+      }
+    } catch (err) {
+      console.error("Edit item error:", err);
+      alert("Network error updating product");
+    }
   };
 
-  const handleRestock = () => {
+  const handleRestock = async () => {
     const qty = Number(restockQty);
     if (!qty || qty <= 0) return;
-    setInventory(prev => prev.map(i => i.id === restockId
-      ? { ...i, stock: i.stock + qty, lastUpdated: new Date().toISOString().slice(0, 10) } : i));
-    setRestockId(null);
-    setRestockQty("");
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/products/refill/${restockId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ quantity: qty })
+      });
+      if (res.ok) {
+        setInventory(prev => prev.map(i => i.id === restockId
+          ? { ...i, stock: i.stock + qty, lastUpdated: new Date().toISOString().slice(0, 10) } : i));
+        setRestockId(null);
+        setRestockQty("");
+      } else {
+        alert("Failed to restock product");
+      }
+    } catch (err) {
+      console.error("Restock error:", err);
+      alert("Network error restocking product");
+    }
   };
 
   const SortIcon = ({ col }) => (

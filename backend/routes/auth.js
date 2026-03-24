@@ -11,15 +11,17 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || "YOUR_GOOG
 // @desc    Register a new business user
 router.post('/register', async (req, res) => {
   try {
-    const { 
+    let { 
       business, email, phone, password, role,
       businessType, productCategory, gstNumber, panNumber, address, pincode 
     } = req.body;
 
+    if (email) email = email.toLowerCase().trim();
+
     // Check if user exists
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ message: `This email is already registered as a ${user.role}.` });
+      return res.status(400).json({ message: 'Email already registered. Please proceed to login.' });
     }
 
     // Hash the password
@@ -85,7 +87,8 @@ router.post('/register', async (req, res) => {
 // @desc    Authenticate user & get token
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    if (email) email = email.toLowerCase().trim();
 
     // See if user exists
     const user = await User.findOne({ email });
@@ -148,14 +151,15 @@ router.post('/google', async (req, res) => {
     });
     const payload = ticket.getPayload();
     
-    const { email, sub, name } = payload; // sub is the googleId
+    let { email, sub, name } = payload; // sub is the googleId
+    if (email) email = email.toLowerCase().trim();
 
         let user = await User.findOne({ email });
         
         if (user) {
             // Prevent using the same email for a different role
             if (requestedRole && user.role !== requestedRole) {
-                return res.status(400).json({ message: `This email is already registered as a ${user.role}. Please use a different email.` });
+                return res.status(400).json({ message: 'This email is already registered with another role. Please login instead.' });
             }
             // If user exists, but doesn't have a googleId, let's link them
             if (!user.googleId) {
@@ -211,12 +215,13 @@ router.post('/google/complete', async (req, res) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     const payload = ticket.getPayload();
-    const { email, sub } = payload; 
+    let { email, sub } = payload; 
+    if (email) email = email.toLowerCase().trim();
 
     // See if user exists
     let user = await User.findOne({ email });
     if (user) {
-        return res.status(400).json({ message: `This email is already registered as a ${user.role}. Please use a different email.` });
+        return res.status(400).json({ message: 'Email already registered. Please login instead.' });
     }
 
     // Create the new user
