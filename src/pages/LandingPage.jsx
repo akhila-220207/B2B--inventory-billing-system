@@ -94,9 +94,9 @@ export default function LandingPage() {
             Get Started
           </Link>
 
-          <Link className="px-10 py-4 bg-slate-800 rounded-full hover:bg-slate-700 glow-btn" to="/buyer-dashboard/marketplace">
+          <a className="px-10 py-4 bg-slate-800 rounded-full hover:bg-slate-700 glow-btn inline-block" href="#features">
             Explore
-          </Link>
+          </a>
         </div>
       </main>
 
@@ -128,7 +128,7 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURES */}
-      <section className="relative z-10 py-24 fade-in">
+      <section id="features" className="relative z-10 py-24 fade-in">
         <h2 className="text-4xl text-center text-blue-400 mb-16">
           Platform Features
         </h2>
@@ -159,18 +159,59 @@ export default function LandingPage() {
 
       {/* TESTIMONIALS */}
       <section className="relative z-10 py-24 bg-slate-900/60 text-center fade-in">
-        <h2 className="text-4xl text-blue-400 mb-12">What Users Say</h2>
+        <div className="max-w-7xl mx-auto px-10">
+          <h2 className="text-4xl font-black text-blue-400 mb-4 tracking-tight">What Users Say</h2>
+          <p className="text-slate-400 text-lg mb-16 max-w-2xl mx-auto">Don't just take our word for it. Hear from the businesses that use our platform daily.</p>
 
-        <div className="grid md:grid-cols-3 gap-10 px-10">
-          {[1,2,3].map((t) => (
-            <div key={t} className="p-6 bg-slate-800 rounded-xl hover:scale-105 transition">
-              <FaStar className="text-yellow-400 mb-3" />
-              <p className="text-gray-300">
-                "This platform completely transformed our inventory workflow!"
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="p-10 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-3xl hover:-translate-y-2 transition-transform duration-300 shadow-xl relative text-left group">
+              <span className="absolute -top-6 -left-2 text-7xl text-blue-500/20 font-serif font-black group-hover:text-blue-500/40 transition-colors">"</span>
+              <p className="text-slate-300 leading-relaxed mb-8 relative z-10 italic">
+                "InventaB2B completely transformed our inventory workflow. The automated stock alerts alone have saved us thousands in potential lost sales."
               </p>
-              <h4 className="mt-4 font-bold">Client {t}</h4>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0">
+                  S
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-md">Sarah Jenkins</h4>
+                  <p className="text-blue-400 text-[11px] uppercase tracking-wider font-bold mt-0.5">RetailCo</p>
+                </div>
+              </div>
             </div>
-          ))}
+
+            <div className="p-10 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-3xl hover:-translate-y-2 transition-transform duration-300 shadow-xl relative text-left group">
+              <span className="absolute -top-6 -left-2 text-7xl text-blue-500/20 font-serif font-black group-hover:text-blue-500/40 transition-colors">"</span>
+              <p className="text-slate-300 leading-relaxed mb-8 relative z-10 italic">
+                "Billing used to be our biggest headache. Now, it takes seconds. The integrated GST invoicing is flawless and keeps us entirely compliant."
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0">
+                  R
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-md">Rahul Sharma</h4>
+                  <p className="text-blue-400 text-[11px] uppercase tracking-wider font-bold mt-0.5">TechDistributors</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-10 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-3xl hover:-translate-y-2 transition-transform duration-300 shadow-xl relative text-left group">
+              <span className="absolute -top-6 -left-2 text-7xl text-blue-500/20 font-serif font-black group-hover:text-blue-500/40 transition-colors">"</span>
+              <p className="text-slate-300 leading-relaxed mb-8 relative z-10 italic">
+                "We manage over 5 warehouses directly through this platform. The real-time tracking is second to none, highly recommend to any modern wholesaler."
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0">
+                  M
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-md">Michael Chen</h4>
+                  <p className="text-blue-400 text-[11px] uppercase tracking-wider font-bold mt-0.5">GlobalGoods</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -180,20 +221,78 @@ export default function LandingPage() {
           Ready to Grow Your Business?
         </h2>
 
-        <Link className="px-10 py-4 bg-blue-700 rounded-full hover:bg-blue-800 glow-btn">
+        <Link className="px-10 py-4 bg-blue-700 rounded-full hover:bg-blue-800 glow-btn" to="/register">
           Start Now
         </Link>
       </section>
 
       {/* FOOTER */}
-      <footer className="relative z-10 bg-slate-900 py-10">
-        <div className="flex justify-between px-10">
-          <h2 className="text-blue-400">Inventa</h2>
+      <footer className="relative z-10 bg-slate-900 pt-16 pb-8 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            
+            {/* Logo and About */}
+            <div className="md:col-span-1">
+              <h2 className="text-2xl font-black text-blue-400 tracking-tighter mb-4">
+                Inventa<span className="text-white">B2B</span>
+              </h2>
+              <p className="text-slate-400 text-sm leading-loose mb-6">
+                The ultimate smart B2B inventory platform. Manage products, orders, billing, and inventory all in one place.
+              </p>
+              <div className="flex gap-4">
+                <a href="#" aria-label="LinkedIn" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-lg">
+                  <FaLinkedin size={18} />
+                </a>
+                <a href="#" aria-label="Twitter" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-lg">
+                  <FaTwitter size={18} />
+                </a>
+                <a href="#" aria-label="Facebook" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-lg">
+                  <FaFacebook size={18} />
+                </a>
+              </div>
+            </div>
 
-          <div className="flex gap-5">
-            <FaLinkedin />
-            <FaTwitter />
-            <FaFacebook />
+            {/* Platform Links */}
+            <div>
+              <h3 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Platform</h3>
+              <ul className="space-y-3">
+                <li><a href="#features" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Features</a></li>
+                <li><Link to="/buyer-dashboard/marketplace" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Marketplace</Link></li>
+                <li><Link to="/register" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Supplier Portal</Link></li>
+                <li><Link to="/login" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Sign In</Link></li>
+              </ul>
+            </div>
+
+            {/* Company Links */}
+            <div>
+              <h3 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Company</h3>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">About Us</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Careers</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Blog</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Contact</a></li>
+              </ul>
+            </div>
+
+            {/* Legal Links */}
+            <div>
+              <h3 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Legal</h3>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Cookie Guidelines</a></li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-slate-500 text-sm font-medium">
+              &copy; {new Date().getFullYear()} InventaB2B. All rights reserved.
+            </p>
+            <p className="text-slate-500 text-sm flex items-center gap-1.5 font-medium">
+              Built with love for b2b success
+            </p>
           </div>
         </div>
       </footer>
