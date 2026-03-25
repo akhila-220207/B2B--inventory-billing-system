@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import {
-  FaLinkedin,
+  FaInstagram,
   FaTwitter,
   FaFacebook,
   FaBoxOpen,
@@ -60,8 +60,10 @@ export default function LandingPage() {
       {/* OFFER BAR */}
       <div className="relative z-10 bg-blue-900 py-3 overflow-hidden">
         <div className="marquee text-sm whitespace-nowrap">
-          🔥 30% OFF Bulk Orders | 🚚 Free Delivery Above ₹5000 | ⭐ Trusted by 500+ Businesses | 📦 10,000+ Products Available
+          🔥 30% OFF Bulk Orders | 🚚 Free Delivery Above ₹5000 | ⭐ Trusted by 500+ Businesses | 📦 10,000+ Products Availab🔥 30% OFF Bulk Orders | 🚚 Free Delivery Above ₹5000 | ⭐ Trusted by 500+ Businesses | 📦 10,000+ Products Available
         </div>
+    
+
       </div>
 
       {/* NAVBAR */}
@@ -105,23 +107,23 @@ export default function LandingPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 text-center gap-10">
 
           <div className="stat-card">
+            <p className="text-sm mb-2">Businesses</p>
             <h3 className="text-4xl font-bold text-blue-400">500+</h3>
-            <p>Businesses</p>
           </div>
 
           <div className="stat-card">
+            <p className="text-sm mb-2">Products</p>
             <h3 className="text-4xl font-bold text-blue-400">10K+</h3>
-            <p>Products</p>
           </div>
 
           <div className="stat-card">
+            <p className="text-sm mb-2">Accuracy</p>
             <h3 className="text-4xl font-bold text-blue-400">99%</h3>
-            <p>Accuracy</p>
           </div>
 
           <div className="stat-card">
+            <p className="text-sm mb-2">Support</p>
             <h3 className="text-4xl font-bold text-blue-400">24/7</h3>
-            <p>Support</p>
           </div>
 
         </div>
@@ -229,7 +231,7 @@ export default function LandingPage() {
       {/* FOOTER */}
       <footer className="relative z-10 bg-slate-900 pt-16 pb-8 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-10">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
             
             {/* Logo and About */}
             <div className="md:col-span-1">
@@ -240,13 +242,13 @@ export default function LandingPage() {
                 The ultimate smart B2B inventory platform. Manage products, orders, billing, and inventory all in one place.
               </p>
               <div className="flex gap-4">
-                <a href="#" aria-label="LinkedIn" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-lg">
-                  <FaLinkedin size={18} />
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-lg">
+                  <FaInstagram size={18} />
                 </a>
-                <a href="#" aria-label="Twitter" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-lg">
+                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-lg">
                   <FaTwitter size={18} />
                 </a>
-                <a href="#" aria-label="Facebook" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-lg">
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-lg">
                   <FaFacebook size={18} />
                 </a>
               </div>
@@ -257,30 +259,20 @@ export default function LandingPage() {
               <h3 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Platform</h3>
               <ul className="space-y-3">
                 <li><a href="#features" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Features</a></li>
-                <li><Link to="/buyer-dashboard/marketplace" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Marketplace</Link></li>
+                <li><Link to="/register" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Marketplace</Link></li>
                 <li><Link to="/register" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Supplier Portal</Link></li>
                 <li><Link to="/login" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Sign In</Link></li>
               </ul>
             </div>
 
-            {/* Company Links */}
+            {/* Support Links */}
             <div>
-              <h3 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Company</h3>
+              <h3 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Support</h3>
               <ul className="space-y-3">
-                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">About Us</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Careers</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Blog</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Contact</a></li>
-              </ul>
-            </div>
-
-            {/* Legal Links */}
-            <div>
-              <h3 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Legal</h3>
-              <ul className="space-y-3">
-                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Cookie Guidelines</a></li>
+                <li><span className="text-slate-500 text-sm font-medium cursor-not-allowed">Contact Support</span></li>
+                <li><a href="tel:+91-9876543210" className="text-slate-400 hover:text-blue-400 text-sm font-medium transition-colors">Call Us: +91-9876543210</a></li>
+                <li><span className="text-slate-500 text-sm font-medium cursor-not-allowed">Help Center (Coming Soon)</span></li>
+                <li><span className="text-slate-500 text-sm font-medium cursor-not-allowed">FAQ (Coming Soon)</span></li>
               </ul>
             </div>
           </div>
@@ -313,12 +305,19 @@ export default function LandingPage() {
         text-shadow:0 0 15px rgba(59,130,246,0.7);
       }
 
-      /* REDUCED ROUND STATS */
+      /* CIRCULAR STATS */
       .stat-card{
         border:2px solid rgba(59,130,246,0.6);
-        padding:12px;
-        border-radius:15px;
+        padding:30px;
+        border-radius:50%;
+        width:160px;
+        height:160px;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
         transition:0.3s;
+        margin:0 auto;
       }
       .stat-card:hover{
         transform:scale(1.05);
