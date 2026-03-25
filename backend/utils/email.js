@@ -23,12 +23,16 @@ const sendOrderConfirmationEmail = async ({ to, buyerName, orderId, items, total
     return 'skipped';
   }
 
-  const itemRows = items.map(item => `
+  const itemRows = items.map(item => {
+    const qty = Number(item.quantity) || 1;
+    const price = Number(item.price) || 0;
+    return `
     <tr>
-      <td style="padding:8px;border-bottom:1px solid #f0f0f0;">${item.name}</td>
-      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:center;">${item.quantity}</td>
-      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;">₹${(item.price * item.quantity).toLocaleString('en-IN')}</td>
-    </tr>`).join('');
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;">${item.name || 'Product'}</td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:center;">${qty}</td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;">₹${(price * qty).toLocaleString('en-IN')}</td>
+    </tr>`;
+  }).join('');
 
   const html = `
     <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
@@ -38,7 +42,7 @@ const sendOrderConfirmationEmail = async ({ to, buyerName, orderId, items, total
       </div>
       <div style="padding:32px 40px;">
         <h2 style="margin:0 0 8px;color:#111827;font-size:20px;">Order Confirmed! 🎉</h2>
-        <p style="color:#6b7280;margin:0 0 24px;">Hi <strong>${buyerName}</strong>, your order has been placed successfully.</p>
+        <p style="color:#6b7280;margin:0 0 24px;">Hi <strong>${buyerName || 'Valued Customer'}</strong>, your order has been placed successfully.</p>
         
         <div style="background:#f9fafb;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
           <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;">Order ID</p>
@@ -58,12 +62,12 @@ const sendOrderConfirmationEmail = async ({ to, buyerName, orderId, items, total
 
         <div style="text-align:right;margin-bottom:24px;padding-top:12px;border-top:2px solid #111827;">
           <span style="font-size:11px;color:#6b7280;text-transform:uppercase;font-weight:700;">Grand Total</span><br>
-          <span style="font-size:24px;font-weight:900;color:#2563eb;">₹${totalAmount.toLocaleString('en-IN')}</span>
+          <span style="font-size:24px;font-weight:900;color:#2563eb;">₹${(Number(totalAmount) || 0).toLocaleString('en-IN')}</span>
         </div>
 
         <div style="background:#f9fafb;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
           <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;">Shipping To</p>
-          <p style="margin:0;color:#374151;font-size:14px;">${shippingAddress}</p>
+          <p style="margin:0;color:#374151;font-size:14px;">${shippingAddress || 'Address not provided'}</p>
         </div>
 
         <a href="${trackingUrl}" style="display:block;background:#2563eb;color:#fff;text-decoration:none;text-align:center;padding:16px;border-radius:12px;font-weight:700;font-size:15px;margin-bottom:24px;">Track Your Order →</a>
@@ -97,12 +101,16 @@ const sendSupplierOrderAlertEmail = async ({ to, supplierName, orderId, buyerBus
     return 'skipped';
   }
 
-  const itemRows = items.map(item => `
+  const itemRows = items.map(item => {
+    const qty = Number(item.quantity) || 1;
+    const price = Number(item.price) || 0;
+    return `
     <tr>
-      <td style="padding:8px;border-bottom:1px solid #f0f0f0;">${item.name}</td>
-      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:center;">${item.quantity}</td>
-      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;">₹${(item.price * item.quantity).toLocaleString('en-IN')}</td>
-    </tr>`).join('');
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;">${item.name || 'Product'}</td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:center;">${qty}</td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:right;">₹${(price * qty).toLocaleString('en-IN')}</td>
+    </tr>`;
+  }).join('');
 
   const html = `
     <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
@@ -112,7 +120,7 @@ const sendSupplierOrderAlertEmail = async ({ to, supplierName, orderId, buyerBus
       </div>
       <div style="padding:32px 40px;">
         <h2 style="margin:0 0 8px;color:#111827;">New Order Received! 📦</h2>
-        <p style="color:#6b7280;margin:0 0 24px;">Hi <strong>${supplierName}</strong>, <strong>${buyerBusiness}</strong> has placed an order for your products.</p>
+        <p style="color:#6b7280;margin:0 0 24px;">Hi <strong>${supplierName || 'Valued Supplier'}</strong>, <strong>${buyerBusiness || 'A buyer'}</strong> has placed an order for your products.</p>
         
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
           <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:1px;">Order ID</p>
@@ -132,7 +140,7 @@ const sendSupplierOrderAlertEmail = async ({ to, supplierName, orderId, buyerBus
 
         <div style="text-align:right;margin-bottom:24px;padding-top:12px;border-top:2px solid #059669;">
           <span style="font-size:11px;color:#6b7280;text-transform:uppercase;font-weight:700;">Total Order Value</span><br>
-          <span style="font-size:24px;font-weight:900;color:#059669;">₹${totalAmount.toLocaleString('en-IN')}</span>
+          <span style="font-size:24px;font-weight:900;color:#059669;">₹${(Number(totalAmount) || 0).toLocaleString('en-IN')}</span>
         </div>
 
         <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">Please prepare this order for dispatch. Log in to your Inventaa Supplier Dashboard to manage it.</p>
@@ -194,4 +202,44 @@ const sendWelcomeEmail = async ({ to, name, role }) => {
   }
 };
 
-module.exports = { sendOrderConfirmationEmail, sendSupplierOrderAlertEmail, sendWelcomeEmail };
+/**
+ * Sends a delivery completion email to the buyer.
+ */
+const sendDeliveryCompletedEmail = async ({ to, buyerName, orderId, trackingUrl }) => {
+  if (!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_email@gmail.com') return 'skipped';
+
+  const html = `
+    <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+      <div style="background:linear-gradient(135deg,#059669,#10b981);padding:32px 40px;color:#fff;">
+        <h1 style="margin:0;font-size:24px;font-weight:900;">Order Delivered! 📦</h1>
+        <p style="margin:4px 0 0;font-size:13px;opacity:0.9;">Great news from Inventaa</p>
+      </div>
+      <div style="padding:32px 40px;">
+        <h2 style="margin:0 0 8px;color:#111827;">Hi ${buyerName || 'Valued Customer'},</h2>
+        <p style="color:#6b7280;margin:0 0 24px;">Your order <strong>#${orderId.toString().slice(-8).toUpperCase()}</strong> has been successfully delivered and signed for!</p>
+        
+        <p style="color:#374151;margin-bottom:24px;">We hope everything arrived in perfect condition. Thank you for choosing Inventaa for your business needs.</p>
+
+        <a href="${trackingUrl}" style="display:block;background:#059669;color:#fff;text-decoration:none;text-align:center;padding:16px;border-radius:12px;font-weight:700;font-size:15px;margin-bottom:24px;">View Order Details →</a>
+
+        <p style="color:#9ca3af;font-size:11px;text-align:center;margin:0;">If you haven't received your package or have an issue, please contact support within 24 hours.</p>
+      </div>
+    </div>`;
+
+  try {
+    const transporter = createTransporter();
+    await transporter.sendMail({
+      from: `"Inventaa" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: `Order Delivered #${orderId.toString().slice(-8).toUpperCase()} — Inventaa`,
+      html
+    });
+    console.log(`✅ Delivery email sent to ${to}`);
+    return 'sent';
+  } catch (err) {
+    console.error('❌ Failed to send delivery email:', err.message);
+    return 'error';
+  }
+};
+
+module.exports = { sendOrderConfirmationEmail, sendSupplierOrderAlertEmail, sendWelcomeEmail, sendDeliveryCompletedEmail };

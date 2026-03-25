@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useCart } from "../context/CartContext";
 
 export default function PaymentPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { clearCart } = useCart();
   const orderData = location.state;
 
   const items = orderData?.items || [];
   const amount = orderData?.totalAmount ?? 0;
   const shippingAddress = orderData?.shippingAddress || "";
+  const isDirectBuy = orderData?.isDirectBuy;
 
   const [method, setMethod] = useState("card");
   const [cardNumber, setCardNumber] = useState("");
@@ -101,6 +104,10 @@ export default function PaymentPage() {
       }
 
       toast.success("Payment successful! Order placed successfully.");
+
+      if (!isDirectBuy) {
+        clearCart();
+      }
 
       // Signal all dashboards to refresh after a new order
       localStorage.setItem("ordersUpdatedAt", Date.now().toString());

@@ -379,12 +379,18 @@ export default function MarketplacePage() {
   };
 
   const handleOrderNow = useCallback(
-    async (product, qty) => {
-      await clearCart();
-      await addToCart(product, qty);
-      navigate("/buyer-dashboard/checkout");
+    (product, qty) => {
+      navigate("/buyer-dashboard/checkout", {
+        state: {
+          directBuyItems: [{
+            ...product,
+            productId: product._id,
+            quantity: qty
+          }]
+        }
+      });
     },
-    [clearCart, addToCart, navigate]
+    [navigate]
   );
 
   const clearFilters = () => {

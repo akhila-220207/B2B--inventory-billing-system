@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { 
   FaArrowLeft, 
@@ -17,8 +17,15 @@ import AddressSection from "../components/AddressSection";
 const API_BASE = "http://127.0.0.1:5000/api";
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const location = useLocation();
+  const directBuyItems = location.state?.directBuyItems;
+  const { cartItems: contextCartItems, cartTotal: contextCartTotal, clearCart } = useCart();
   const navigate = useNavigate();
+  
+  const cartItems = directBuyItems || contextCartItems;
+  const cartTotal = directBuyItems 
+    ? directBuyItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    : contextCartTotal;
   
   const [address, setAddress] = useState("");
   const [pincode, setPincode] = useState("");
@@ -139,7 +146,7 @@ export default function CheckoutPage() {
       if (res.ok) {
         const order = await res.json();
         setOrderSuccess(order);
-        clearCart(); // Clear local and server cart
+        if (!directBuyItems) clearCart(); // Clear local and server cart
       } else {
         const data = await res.json();
         setError(data.message || "Order failed. Please try again.");
@@ -369,7 +376,8 @@ export default function CheckoutPage() {
       state: {
         items: cartItems,
         totalAmount: total,
-        shippingAddress: finalAddressStr
+        shippingAddress: finalAddressStr,
+        isDirectBuy: !!directBuyItems
       }
     });
   }}

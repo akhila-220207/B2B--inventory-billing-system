@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
-const { sendOrderConfirmationEmail, sendSupplierOrderAlertEmail } = require('../utils/email');
+const { sendOrderConfirmationEmail, sendSupplierOrderAlertEmail, sendDeliveryCompletedEmail } = require('../utils/email');
 
 // Middleware: Authenticate JWT
 const authMiddleware = (req, res, next) => {
@@ -124,10 +124,22 @@ router.post('/', authMiddleware, async (req, res) => {
 
           setTimeout(async () => {
             try {
-              const finalOrder = await Order.findById(order._id);
+              const finalOrder = await Order.findById(order._id).populate('userId', 'business email');
               if (finalOrder && finalOrder.status === 'Shipped') {
                 finalOrder.status = 'Delivered';
                 await finalOrder.save();
+
+                const buyerEmail = finalOrder.userId?.email;
+                const buyerBusiness = finalOrder.userId?.business;
+
+                if (buyerEmail) {
+                  await sendDeliveryCompletedEmail({
+                    to: buyerEmail,
+                    buyerName: buyerBusiness,
+                    orderId: finalOrder._id,
+                    trackingUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/order-tracking/${finalOrder._id}`
+                  });
+                }
               }
             } catch (err) { }
           }, 15000); // Delivered after 15 seconds from Shipped
