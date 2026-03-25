@@ -11,6 +11,7 @@ import {
   FaStar,
   FaRegStar
 } from "react-icons/fa";
+import { toast } from "react-toastify";
 import AddressSection from "../components/AddressSection";
 
 const API_BASE = "http://127.0.0.1:5000/api";
@@ -342,6 +343,13 @@ export default function CheckoutPage() {
                 
               <button
   onClick={() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please log in to proceed with payment.");
+      navigate("/login");
+      return;
+    }
+
     let finalAddressStr = "";
     if (!showNewAddressForm && selectedAddressId) {
        const addr = savedAddresses.find(a => a._id === selectedAddressId);

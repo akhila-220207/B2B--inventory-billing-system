@@ -14,10 +14,16 @@ const authMiddleware = (req, res, next) => {
   }
   try {
     const token = authHeader.split(' ')[1];
+    if (!token || token === 'null' || token === 'undefined') {
+      return res.status(401).json({ message: 'Unauthorized: Please log in' });
+    }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded.user;
     next();
   } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Session expired. Please log in again.' });
+    }
     res.status(401).json({ message: 'Token is invalid' });
   }
 };

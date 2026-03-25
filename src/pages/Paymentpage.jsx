@@ -92,6 +92,11 @@ export default function PaymentPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          toast.error(data.message || "Session expired. Please log in again.");
+          navigate("/login");
+          return;
+        }
         throw new Error(data.message || "Payment failed. Please try again.");
       }
 
