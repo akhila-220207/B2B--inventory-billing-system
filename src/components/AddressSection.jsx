@@ -24,6 +24,13 @@ function MapUpdater({ center }) {
       map.flyTo([center.lat, center.lng], 15);
     }
   }, [center, map]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [map]);
+
   return null;
 }
 

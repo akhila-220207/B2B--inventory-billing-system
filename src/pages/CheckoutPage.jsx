@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { 
@@ -25,8 +25,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
   const [error, setError] = useState("");
-  const [whatsappNumber, setWhatsappNumber] = useState("");
-  const [countryCode, setCountryCode] = useState("+91");
+
 
   // Address states
   const [savedAddresses, setSavedAddresses] = useState([]);
@@ -297,31 +296,7 @@ export default function CheckoutPage() {
                    <p className="text-[10px] text-gray-400">Payment method will be activated once credit line is verified by supplier.</p>
                 </div>
 
-                <div className="space-y-4">
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">WhatsApp Number (For Tracking)</label>
-                  <div className="flex gap-2">
-                    <select
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value)}
-                      className="w-24 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
-                    >
-                      <option value="+91">+91 (IN)</option>
-                      <option value="+1">+1 (US)</option>
-                      <option value="+44">+44 (UK)</option>
-                      <option value="+971">+971 (UAE)</option>
-                      <option value="+65">+65 (SG)</option>
-                      <option value="+61">+61 (AU)</option>
-                    </select>
-                    <input
-                      type="text"
-                      placeholder="9876543210"
-                      value={whatsappNumber}
-                      onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ''))}
-                      className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
-                    />
-                  </div>
-                  <p className="text-[10px] text-gray-400">We will send your order tracking details and invoices to this number.</p>
-                </div>
+
               </div>
             </div>
 
@@ -386,8 +361,7 @@ export default function CheckoutPage() {
       state: {
         items: cartItems,
         totalAmount: total,
-        shippingAddress: finalAddressStr,
-        whatsappNumber: whatsappNumber ? `${countryCode}${whatsappNumber}` : ''
+        shippingAddress: finalAddressStr
       }
     });
   }}

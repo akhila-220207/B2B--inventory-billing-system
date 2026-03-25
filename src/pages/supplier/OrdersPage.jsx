@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-
-
-const API_BASE = "http://127.0.0.1:5000/api";
+import jsPDF from "jspdf";const API_BASE = "http://127.0.0.1:5000/api";
 
 const STATUS_CONFIG = {
   Pending:   { bg: "#fffbeb", color: "#b45309", border: "#fde68a", icon: "⏳", label: "Pending" },
@@ -101,6 +99,58 @@ export default function OrdersPage() {
   const deleteOrder = (id) => {
     setOrders(prev => prev.filter(o => o.id !== id));
     setDeleteId(null);
+  };
+
+  const generateInvoice = (order) => {
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.setTextColor(30, 58, 138); // Indigo
+    doc.text("TAX INVOICE", 105, 20, null, null, "center");
+    
+    doc.setFontSize(12);
+    doc.setTextColor(70, 70, 70);
+    doc.text(`Invoice No: INV-${order.id.replace('#', '')}`, 20, 40);
+    doc.text(`Date Issued: ${order.date}`, 20, 50);
+    doc.text(`Status: ${order.status}`, 20, 60);
+
+    doc.setFontSize(14);
+    doc.setTextColor(30, 58, 138);
+    doc.text("Bill To:", 120, 40);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(70, 70, 70);
+    doc.text(order.buyer, 120, 50);
+    doc.text(order.phone || "No phone provided", 120, 60);
+    // Simple address wrap hack
+    const addressLines = doc.splitTextToSize(order.address || "", 70);
+    doc.text(addressLines, 120, 70);
+
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 90, 190, 90);
+
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Products Purchased:", 20, 105);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(80, 80, 80);
+    const productLines = doc.splitTextToSize(order.products, 170);
+    doc.text(productLines, 20, 115);
+    
+    const yOffset = 115 + (productLines.length * 7) + 15;
+
+    doc.line(20, yOffset, 190, yOffset);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(30, 58, 138);
+    doc.text(`Total Quantity: ${order.qty} Units`, 20, yOffset + 15);
+    doc.text(`Grand Total: INR ${order.total.toLocaleString()}`, 110, yOffset + 15);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Thank you for your business. This is a computer generated invoice.", 105, 280, null, null, "center");
+
+    doc.save(`Invoice_${order.id.replace('#', '')}.pdf`);
   };
 
   const handleAddOrder = () => {
@@ -368,13 +418,25 @@ export default function OrdersPage() {
                   <div style={{ color: "#fff", fontWeight: 800, fontSize: 17 }}>Order {selectedOrder.id}</div>
                   <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 2 }}>{selectedOrder.date}</div>
                 </div>
-                <span style={{
-                  padding: "5px 13px", borderRadius: 20,
-                  background: sc.color + "25", color: sc.color,
-                  fontSize: 12, fontWeight: 700, border: `1px solid ${sc.border}`,
-                }}>
-                  {sc.icon} {sc.label}
-                </span>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <button onClick={() => generateInvoice(selectedOrder)} style={{
+                    padding: "6px 12px", borderRadius: 10,
+                    background: "rgba(255,255,255,0.15)", color: "#fff",
+                    fontSize: 12, fontWeight: 700, border: "1px solid rgba(255,255,255,0.2)",
+                    cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+                    backdropFilter: "blur(4px)"
+                  }}>
+                    📥 Invoice
+                  </button>
+                  <span style={{
+                    padding: "5px 13px", borderRadius: 20,
+                    background: sc.color + "25", color: sc.color,
+                    fontSize: 12, fontWeight: 700, border: `1px solid ${sc.border}`,
+                    background: "#fff" // Override for visual contrast on dark header
+                  }}>
+                    {sc.icon} {sc.label}
+                  </span>
+                </div>
               </div>
               <div style={{ padding: "24px" }}>
                 {[

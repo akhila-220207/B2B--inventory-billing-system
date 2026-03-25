@@ -90,7 +90,7 @@ export default function RegisterPage() {
       setServerError("Google auth error. Please try again.");
       setLoading(false);
     }
-  }, [handleSuccessRedirect, formData.role]);
+  }, [handleSuccessRedirect, formData]);
 
   // Note: useGoogleOneTapLogin removed — it conflicts with the GoogleLogin button.
 

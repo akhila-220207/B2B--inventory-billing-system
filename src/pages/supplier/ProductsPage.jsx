@@ -115,6 +115,24 @@ export default function ProductsPage() {
            // Only show the supplier's own products
            const myProducts = data.products.filter(p => p.supplier === business);
            setProducts(myProducts);
+           
+           // Check for low stock items and show alert
+           const lowStockItems = myProducts.filter(p => {
+             const stock = typeof p.stock === 'number' ? p.stock : (p.stockQty || 0);
+             return stock > 0 && stock <= 15;
+           });
+           if (lowStockItems.length > 0) {
+             showToast(`⚠️ ${lowStockItems.length} product(s) have low stock!`, "warning");
+           }
+           
+           // Check for out of stock items
+           const outOfStockItems = myProducts.filter(p => {
+             const stock = typeof p.stock === 'number' ? p.stock : (p.stockQty || 0);
+             return stock === 0;
+           });
+           if (outOfStockItems.length > 0) {
+             showToast(`🚨 ${outOfStockItems.length} product(s) are out of stock!`, "error");
+           }
         }
       } catch (err) {
         showToast("Error loading products", "error");
@@ -123,12 +141,14 @@ export default function ProductsPage() {
       }
     };
     fetchProducts();
+    const interval = setInterval(fetchProducts, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   // ── Toast ──────────────────────────────────────────────────
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 4000);
   };
 
   // ── Field helper ──────────────────────────────────────────
@@ -282,7 +302,10 @@ export default function ProductsPage() {
       return (av < bv ? -1 : av > bv ? 1 : 0) * (sortDir === "asc" ? 1 : -1);
     });
 
-  const totalValue = products.reduce((s, p) => s + p.price * p.stock, 0);
+  const totalValue = products.reduce((s, p) => {
+    const stockQuant = typeof p.stock === 'number' ? p.stock : (p.stockQty || 0);
+    return s + p.price * stockQuant;
+  }, 0);
   const SortIcon = ({ col }) => (
     <span style={{ marginLeft: 3, opacity: sortBy === col ? 1 : 0.3, fontSize: 9 }}>
       {sortBy === col ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
@@ -297,13 +320,13 @@ export default function ProductsPage() {
         <div style={{
           position: "fixed", top: 20, right: 24, zIndex: 999,
           padding: "12px 20px", borderRadius: 12, fontWeight: 700, fontSize: 13,
-          background: toast.type === "error" ? "#fef2f2" : "#f0fdf4",
-          color: toast.type === "error" ? "#b91c1c" : "#15803d",
-          border: `1px solid ${toast.type === "error" ? "#fecaca" : "#bbf7d0"}`,
+          background: toast.type === "error" ? "#fef2f2" : toast.type === "warning" ? "#fffbeb" : "#f0fdf4",
+          color: toast.type === "error" ? "#b91c1c" : toast.type === "warning" ? "#b45309" : "#15803d",
+          border: `1px solid ${toast.type === "error" ? "#fecaca" : toast.type === "warning" ? "#fde68a" : "#bbf7d0"}`,
           boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
           display: "flex", alignItems: "center", gap: 8,
         }}>
-          {toast.type === "error" ? "✕" : "✓"} {toast.msg}
+          {toast.type === "error" ? "✕" : toast.type === "warning" ? "⚠" : "✓"} {toast.msg}
         </div>
       )}
 
@@ -622,7 +645,10 @@ export default function ProductsPage() {
           </span>
           <span style={{ fontSize: 12, color: "#94a3b8" }}>
             Visible stock value: <strong style={{ color: "#7c3aed" }}>
-              ₹{filtered.reduce((s, p) => s + p.price * p.stock, 0).toLocaleString()}
+              ₹{filtered.reduce((s, p) => {
+                const stockQuant = typeof p.stock === 'number' ? p.stock : (p.stockQty || 0);
+                return s + p.price * stockQuant;
+              }, 0).toLocaleString()}
             </strong>
           </span>
         </div>

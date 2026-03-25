@@ -373,7 +373,10 @@ const seedIfEmpty = async () => {
   }
 };
 
-seedIfEmpty();
+const mongoose = require('mongoose');
+mongoose.connection.once('connected', () => {
+  seedIfEmpty();
+});
 
 let cachedCategories = null;
 let cachedSuppliers = null;
@@ -382,13 +385,32 @@ let lastCacheTime = 0;
 // GET /api/products — supports search, category, supplier, stockStatus, sortPrice
 router.get('/', async (req, res) => {
   try {
-  // Temporary: Clear out test products before fetching real data
+    // Optional JWT parse to securely scope Supplier products
+    const authHeader = req.headers.authorization;
+    let userRole = null;
+    let userId = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userRole = decoded.user.role;
+        userId = decoded.user.id;
+      } catch(e) {}
+    }
+
+    // Temporary: Clear out test products before fetching real data
     await Product.deleteMany({
-  name: { $in: ["ricce", "dgsfdhg"] }
-});
+      name: { $in: ["ricce", "dgsfdhg"] }
+    });
+    
     const { search, category, supplier, stockStatus, sortPrice } = req.query;
 
     const query = {};
+
+    // If the requester is a supplier, lock the catalog view to ONLY their products
+    if (userRole === 'supplier') {
+      query.supplierId = userId;
+    }
 
     if (search) {
       query.$or = [

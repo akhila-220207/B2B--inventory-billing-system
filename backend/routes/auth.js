@@ -12,10 +12,12 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || "YOUR_GOOG
 // @desc    Register a new business user
 router.post('/register', async (req, res) => {
   try {
-    const { 
+    let { 
       business, email, phone, password, role,
       businessType, productCategory, gstNumber, panNumber, address, pincode 
     } = req.body;
+
+    if (email) email = email.toLowerCase().trim();
 
     // Check if user exists
     let user = await User.findOne({ email });
@@ -94,7 +96,8 @@ router.post('/register', async (req, res) => {
 // @desc    Authenticate user & get token
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    if (email) email = email.toLowerCase().trim();
 
     // See if user exists
     const user = await User.findOne({ email });
@@ -157,7 +160,8 @@ router.post('/google', async (req, res) => {
     });
     const payload = ticket.getPayload();
     
-    const { email, sub, name } = payload; // sub is the googleId
+    let { email, sub, name } = payload; // sub is the googleId
+    if (email) email = email.toLowerCase().trim();
 
         let user = await User.findOne({ email });
         
@@ -171,8 +175,8 @@ router.post('/google', async (req, res) => {
             // If user exists, but doesn't have a googleId, let's link them
             if (!user.googleId) {
                 user.googleId = sub;
+                await user.save();
             }
-            await user.save();
 
             // Return jsonwebtoken
             const jwtPayload = {
@@ -222,7 +226,8 @@ router.post('/google/complete', async (req, res) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     const payload = ticket.getPayload();
-    const { email, sub } = payload; 
+    let { email, sub } = payload; 
+    if (email) email = email.toLowerCase().trim();
 
     // See if user exists
     let user = await User.findOne({ email });

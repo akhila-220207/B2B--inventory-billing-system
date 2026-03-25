@@ -145,6 +145,42 @@ export default function SupplierHomePage() {
         const totalRevenue = ordersData.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
         const totalProducts = productsData.length;
         
+        // Calculate dynamic month-over-month changes
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        let thisMonthOrders = 0, lastMonthOrders = 0;
+        let thisMonthRevenue = 0, lastMonthRevenue = 0;
+        const thisMonthBuyers = new Set(), lastMonthBuyers = new Set();
+        let thisMonthProducts = 0, lastMonthProducts = 0;
+
+        ordersData.forEach(o => {
+          const d = new Date(o.createdAt);
+          if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+            thisMonthOrders++; thisMonthRevenue += (o.totalAmount || 0); thisMonthBuyers.add(o.buyerId || o.buyer);
+          } else if ((d.getFullYear() === currentYear && d.getMonth() === currentMonth - 1) || (currentMonth === 0 && d.getFullYear() === currentYear - 1 && d.getMonth() === 11)) {
+            lastMonthOrders++; lastMonthRevenue += (o.totalAmount || 0); lastMonthBuyers.add(o.buyerId || o.buyer);
+          }
+        });
+
+        productsData.forEach(p => {
+          const d = new Date(p.createdAt || new Date());
+          if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) thisMonthProducts++;
+          else if ((d.getFullYear() === currentYear && d.getMonth() === currentMonth - 1) || (currentMonth === 0 && d.getFullYear() === currentYear - 1 && d.getMonth() === 11)) lastMonthProducts++;
+        });
+
+        const calcChange = (cur, prv) => {
+          if (prv === 0) return { val: cur > 0 ? 100 : 0, pos: true };
+          const diff = ((cur - prv) / prv) * 100;
+          return { val: Math.abs(Math.round(diff)), pos: diff >= 0 };
+        };
+
+        const revChange = calcChange(thisMonthRevenue, lastMonthRevenue);
+        const ordersChange = calcChange(thisMonthOrders, lastMonthOrders);
+        const buyersChange = calcChange(thisMonthBuyers.size, lastMonthBuyers.size);
+        const prodsChange = calcChange(thisMonthProducts, lastMonthProducts);
+
         // Calculate active buyers (unique buyers)
         const uniqueBuyers = new Set(ordersData.map(o => o.buyerId || o.buyer)).size;
         
@@ -264,6 +300,7 @@ export default function SupplierHomePage() {
           activeBuyers: uniqueBuyers,
           alerts: dynamicAlerts,
           topProducts: topSellingProducts,
+          revChange, ordersChange, buyersChange, prodsChange
         });
         
       } catch (err) {
@@ -273,7 +310,9 @@ export default function SupplierHomePage() {
       }
     };
     fetchAllData();
-  }, []);
+    const interval = setInterval(fetchAllData, 10000);
+    return () => clearInterval(interval);
+  }, [navigate]);
 
   const handleDeleteProduct = async (id, name) => {
     if (!window.confirm(`Are you sure you want to delete "${name}"? This will remove it from the marketplace.`)) {
@@ -306,10 +345,10 @@ export default function SupplierHomePage() {
   };
 
   const statCards = [
-    { title: "Total Products",  value: stats.totalProducts.toString(),        icon: FaBox,         gradient: "linear-gradient(135deg,#3b82f6,#1d4ed8)", change: "+12%", positive: true  },
-    { title: "Total Orders",    value: stats.totalOrders.toString(),        icon: FaShoppingCart,gradient: "linear-gradient(135deg,#10b981,#047857)", change: "+8%",  positive: true  },
-    { title: "Revenue",         value: `₹${stats.revenue.toLocaleString("en-IN")}`,  icon: FaRupeeSign,   gradient: "linear-gradient(135deg,#8b5cf6,#6d28d9)", change: "+15%", positive: true  },
-    { title: "Active Buyers",   value: stats.activeBuyers.toString(),         icon: FaUsers,       gradient: "linear-gradient(135deg,#f97316,#c2410c)", change: "-2%",  positive: false },
+    { title: "Total Products",  value: stats.totalProducts.toString(),        icon: FaBox,         gradient: "linear-gradient(135deg,#3b82f6,#1d4ed8)", change: `${stats.prodsChange?.pos ? '+' : '-'}${stats.prodsChange?.val || 0}%`, positive: stats.prodsChange?.pos ?? true  },
+    { title: "Total Orders",    value: stats.totalOrders.toString(),        icon: FaShoppingCart,gradient: "linear-gradient(135deg,#10b981,#047857)", change: `${stats.ordersChange?.pos ? '+' : '-'}${stats.ordersChange?.val || 0}%`,  positive: stats.ordersChange?.pos ?? true  },
+    { title: "Revenue",         value: `₹${stats.revenue.toLocaleString("en-IN")}`,  icon: FaRupeeSign,   gradient: "linear-gradient(135deg,#8b5cf6,#6d28d9)", change: `${stats.revChange?.pos ? '+' : '-'}${stats.revChange?.val || 0}%`, positive: stats.revChange?.pos ?? true  },
+    { title: "Active Buyers",   value: stats.activeBuyers.toString(),         icon: FaUsers,       gradient: "linear-gradient(135deg,#f97316,#c2410c)", change: `${stats.buyersChange?.pos ? '+' : '-'}${stats.buyersChange?.val || 0}%`,  positive: stats.buyersChange?.pos ?? true },
   ];
 
   const alerts = !stats.alerts || stats.alerts.length === 0 ? [
@@ -533,14 +572,14 @@ export default function SupplierHomePage() {
                   <td style={{ padding: "12px 16px", color: "#94a3b8", fontSize: 12 }}>{new Date(order.createdAt).toLocaleDateString()}</td>
                   <td style={{ padding: "12px 16px" }}>
                     <button 
-                      onClick={() => navigate(`/order-tracking/${order._id}`)}
+                      onClick={() => navigate(`/supplier-dashboard/orders`)}
                       style={{
                         padding: "5px 12px", borderRadius: 7,
                         border: "1.5px solid #bfdbfe", background: "#eff6ff",
                         color: "#1d4ed8", fontSize: 11, fontWeight: 700,
                         cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
                       }}>
-                      <FaEye size={10} /> View
+                      <FaEye size={10} /> View All
                     </button>
                   </td>
                 </tr>

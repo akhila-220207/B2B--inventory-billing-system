@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   FaBoxOpen, 
   FaCargoCult, 
@@ -14,8 +14,25 @@ const API_BASE = "http://127.0.0.1:5000/api";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  useEffect(() => {
+    const onOrdersUpdated = () => setRefreshCounter(prev => prev + 1);
+    const onStorage = (e) => {
+      if (e.key === "ordersUpdatedAt") onOrdersUpdated();
+    };
+
+    window.addEventListener("orders-updated", onOrdersUpdated);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener("orders-updated", onOrdersUpdated);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -37,7 +54,7 @@ export default function OrdersPage() {
       }
     };
     fetchOrders();
-  }, []);
+  }, [refreshCounter]);
 
   const handleCancelOrder = async (orderId) => {
     if (!window.confirm("Are you sure you want to cancel this order?")) return;
@@ -190,13 +207,13 @@ export default function OrdersPage() {
                        <p className="text-[10px] text-green-600 font-bold uppercase">Payment {order.paymentStatus}</p>
                     </div>
                     
-                    <Link
-                      to={`/order-tracking/${order._id}`}
+                    <button
+                      onClick={() => navigate(`/order-tracking/${order._id}`)}
                       className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl text-xs font-bold hover:bg-blue-600 transition-all shadow-lg shadow-gray-200 group"
                     >
                       Track Order
                       <FaChevronRight className="text-[10px] group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    </button>
 
                     {order.status === 'Processing' && (
                       <button

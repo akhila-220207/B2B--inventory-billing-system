@@ -31,10 +31,11 @@ export default function OrderTrackingPage() {
           const data = await res.json();
           setOrder(data);
         } else {
-          setError("Order tracking details not found.");
+          const errData = await res.json().catch(() => ({}));
+          setError(`HTTP ${res.status}: ${errData.message || "Order tracking details not found."}`);
         }
       } catch (err) {
-        setError("Failed to connect to tracking server.");
+        setError(`Fetch Error: ${err.message}`);
       } finally {
         setLoading(false);
       }
