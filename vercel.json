@@ -3,7 +3,7 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install && cd backend && npm install",
   "framework": "create-react-app",
-  "public": "public",
+  "public": true,
   "functions": {
     "api/index.js": {
       "memory": 1024,
