@@ -1,4 +1,13 @@
 require('dotenv').config();
+
+const requiredEnv = ['MONGODB_URI', 'JWT_SECRET'];
+const missingEnv = requiredEnv.filter((key) => !process.env[key]);
+if (missingEnv.length) {
+  console.error('❌ Missing required environment variables:', missingEnv.join(', '));
+  process.exit(1);
+}
+
+console.log('Mongo URI:', process.env.MONGODB_URI);
 const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first');
 
@@ -16,10 +25,16 @@ const app = express();
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+
+// CORS Configuration for local development
+const corsOptions = {
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000'],
   credentials: true,
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 
 // ✅ Test / Root Route (IMPORTANT - moved to correct place)
 app.get('/', (req, res) => {

@@ -1,7 +1,17 @@
 import axios from "axios";
 
+// Determine base URL based on environment
+const getBaseURL = () => {
+  if (process.env.NODE_ENV === "production") {
+    // In production, use relative URLs or the current domain
+    return "/api";
+  }
+  // In development, use localhost
+  return "http://127.0.0.1:5000/api";
+};
+
 const API = axios.create({
-  baseURL: "http://127.0.0.1:5000/api"
+  baseURL: getBaseURL()
 });
 
 // Add token to requests if available
